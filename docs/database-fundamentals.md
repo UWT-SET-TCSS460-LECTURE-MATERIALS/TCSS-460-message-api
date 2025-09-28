@@ -2,6 +2,15 @@
 
 A comprehensive guide to database concepts and practices for web application development.
 
+> **💡 Related Code**: See implementations in [`/src/core/utilities/transactionUtils.ts`](../src/core/utilities/transactionUtils.ts) and [`/src/core/utilities/database.ts`](../src/core/utilities/database.ts)
+
+## Quick Navigation
+- 🔧 **Transaction Utilities**: [`transactionUtils.ts`](../src/core/utilities/transactionUtils.ts) - `withTransaction()`, `executeTransactionWithResponse()`
+- 🗃️ **Database Connection**: [`database.ts`](../src/core/utilities/database.ts) - Connection pooling and setup
+- 🎯 **Usage Examples**: [`messageController.ts`](../src/controllers/messageController.ts) - Real transaction usage
+- 🏗️ **Architecture**: [Node.js Architecture](./node-express-architecture.md#mvc-architecture-pattern) - How databases fit in MVC
+- 🔒 **Security**: [Web Security Guide](./web-security-guide.md#sql-injection-prevention) - Database security practices
+
 ## Table of Contents
 
 - [Database Transactions](#database-transactions)

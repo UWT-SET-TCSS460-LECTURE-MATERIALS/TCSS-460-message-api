@@ -2,6 +2,17 @@
 
 A comprehensive guide to building scalable web applications with Node.js and Express.js.
 
+> **💡 Related Code**: See implementations in [`/src/app.ts`](../src/app.ts), [`/src/index.ts`](../src/index.ts), [`/src/controllers/`](../src/controllers/), and [`/src/routes/`](../src/routes/)
+
+## Quick Navigation
+- 🏗️ **Application Factory**: [`app.ts`](../src/app.ts) - Express app configuration and middleware setup
+- 🚀 **Server Lifecycle**: [`index.ts`](../src/index.ts) - Application startup and graceful shutdown
+- 🎯 **MVC Controllers**: [`controllers/`](../src/controllers/) - Business logic implementation
+- 🛣️ **Routing System**: [`routes/`](../src/routes/) - URL patterns and route organization
+- 🔧 **Middleware Examples**: [`messageValidation.ts`](../src/core/middleware/messageValidation.ts) - Custom validation middleware
+- 🗃️ **Database Integration**: [Database Fundamentals](./database-fundamentals.md#connection-pooling) - How data layer connects
+- 🔒 **Security Practices**: [Web Security Guide](./web-security-guide.md#cors-configuration) - Express security patterns
+
 ## Table of Contents
 
 - [MVC Architecture Pattern](#mvc-architecture-pattern)

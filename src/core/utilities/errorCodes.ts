@@ -1,35 +1,11 @@
-export const ErrorCodes = {
-    // Validation Errors
-    VALD_MISSING_FIELDS: 'VALD_MISSING_FIELDS',
-    VALD_INVALID_EMAIL: 'VALD_INVALID_EMAIL',
-    VALD_INVALID_PHONE: 'VALD_INVALID_PHONE',
-    VALD_INVALID_FORMAT: 'VALD_INVALID_FORMAT',
-    VALD_INVALID_PRIORITY: 'VALD_INVALID_PRIORITY',
-    VALD_NAME_EXISTS: 'VALD_NAME_EXISTS',
+/**
+ * Error codes re-export from centralized types
+ *
+ * This file maintains backward compatibility while types are now centralized
+ * in /src/types/. Import from @/types directly for new code.
+ *
+ * @deprecated Use import { ErrorCodes } from '@/types' instead
+ * @see {@link ../../types/errorTypes.ts} for the centralized error definitions
+ */
 
-    // Message-specific Validation Errors
-    MSG_NAME_EXISTS: 'MSG_NAME_EXISTS',
-    MSG_PRIORITY_INVALID: 'MSG_PRIORITY_INVALID',
-    MSG_MALFORMED_JSON: 'MSG_MALFORMED_JSON',
-    MSG_MISSING_REQUIRED_INFO: 'MSG_MISSING_REQUIRED_INFO',
-
-    // Database Errors
-    SRVR_DATABASE_ERROR: 'SRVR_DATABASE_ERROR',
-    SRVR_TRANSACTION_FAILED: 'SRVR_TRANSACTION_FAILED',
-
-    // Resource Errors
-    RSRC_NOT_FOUND: 'RSRC_NOT_FOUND',
-    RSRC_ALREADY_EXISTS: 'RSRC_ALREADY_EXISTS',
-    RSRC_ACCESS_DENIED: 'RSRC_ACCESS_DENIED',
-    RSRC_NAME_NOT_FOUND: 'RSRC_NAME_NOT_FOUND',
-
-    // Message-specific Resource Errors
-    MSG_NOT_FOUND: 'MSG_NOT_FOUND',
-    MSG_NO_PRIORITY_FOUND: 'MSG_NO_PRIORITY_FOUND',
-
-    // General Server Errors
-    SRVR_INTERNAL_ERROR: 'SRVR_INTERNAL_ERROR',
-    SRVR_SERVICE_UNAVAILABLE: 'SRVR_SERVICE_UNAVAILABLE'
-} as const;
-
-export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+export { ErrorCodes, type ErrorCode } from '@/types/errorTypes';

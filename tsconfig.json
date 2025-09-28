@@ -20,7 +20,9 @@
       "@utilities": ["core/utilities"],
       "@models/*": ["core/models/*"],
       "@models": ["core/models"],
-      "@db": ["core/utilities/database"]
+      "@db": ["core/utilities/database"],
+      "@/types": ["types"],
+      "@/types/*": ["types/*"]
     }
   },
   "include": ["src/**/*"],

@@ -16,42 +16,7 @@
  */
 
 import { Response } from 'express';
-
-/**
- * Standard API response structure used across all endpoints
- * Provides consistent format for both success and error responses
- * Generic type T allows for type-safe data payloads
- *
- * @interface ApiResponse<T>
- * @template T The type of data returned in successful responses
- * @example
- * // Success response with message data
- * const response: ApiResponse<MessageEntry> = {
- *   success: true,
- *   message: "Message retrieved successfully",
- *   data: { name: "John", message: "Hello", priority: 1, formatted: "..." }
- * };
- * @example
- * // Error response with validation details
- * const response: ApiResponse = {
- *   success: false,
- *   message: "Validation failed",
- *   errorCode: "VALIDATION_ERROR",
- *   errors: [{ field: "name", message: "Name is required" }]
- * };
- */
-export interface ApiResponse<T = any> {
-    /** Indicates whether the request was successful (true) or failed (false) */
-    success: boolean;
-    /** Optional human-readable message providing context about the response */
-    message?: string;
-    /** Optional data payload for successful responses (type varies by endpoint) */
-    data?: T;
-    /** Optional machine-readable error code for programmatic error handling */
-    errorCode?: string;
-    /** Optional array of detailed error information (typically validation errors) */
-    errors?: any[];
-}
+import { ApiResponse } from '@/types';
 
 /**
  * Send standardized success response with optional data and message

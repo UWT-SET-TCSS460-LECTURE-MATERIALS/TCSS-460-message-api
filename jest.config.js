@@ -23,7 +23,7 @@ module.exports = {
     },
   },
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@controllers/(.*)$': '<rootDir>/src/controllers/$1',
     '^@controllers$': '<rootDir>/src/controllers',
     '^@middleware/(.*)$': '<rootDir>/src/core/middleware/$1',
@@ -32,6 +32,8 @@ module.exports = {
     '^@utilities$': '<rootDir>/src/core/utilities',
     '^@models/(.*)$': '<rootDir>/src/core/models/$1',
     '^@models$': '<rootDir>/src/core/models',
-    '^@db$': '<rootDir>/src/core/utilities/database'
+    '^@db$': '<rootDir>/src/core/utilities/database',
+    '^@/types/(.*)$': '<rootDir>/src/types/$1',
+    '^@/types$': '<rootDir>/src/types'
   },
 };

@@ -27,45 +27,7 @@ import { Response } from 'express';
 import { PoolClient } from 'pg';
 import { getPool } from './database';
 import { sendError, sendSuccess } from './responseUtils';
-
-/**
- * Result wrapper for database transaction operations
- * Provides consistent success/failure handling with optional data payload and error information
- * Generic type T allows for type-safe data return from transaction operations
- *
- * @interface TransactionResult<T>
- * @template T The type of data returned on successful transaction completion
- * @example
- * // Successful transaction result
- * const result: TransactionResult<MessageRecord> = {
- *   success: true,
- *   data: { id: 123, name: "John", message: "Hello", priority: 1, ... }
- * };
- * @example
- * // Failed transaction result
- * const result: TransactionResult<MessageRecord> = {
- *   success: false,
- *   error: new Error("Constraint violation: duplicate key")
- * };
- * @example
- * // Usage in transaction utility functions
- * const result = await withTransaction(async (client) => {
- *   return await client.query('INSERT INTO messages...');
- * });
- * if (result.success) {
- *   console.log('Transaction completed:', result.data);
- * } else {
- *   console.error('Transaction failed:', result.error);
- * }
- */
-export interface TransactionResult<T> {
-    /** Indicates whether the transaction completed successfully */
-    success: boolean;
-    /** Optional data payload returned from successful transaction (type T) */
-    data?: T;
-    /** Optional error information if transaction failed */
-    error?: Error;
-}
+import { TransactionResult } from '@/types';
 
 /**
  * Execute operations within a database transaction

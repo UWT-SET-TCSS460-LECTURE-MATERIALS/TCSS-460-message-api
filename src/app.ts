@@ -68,7 +68,7 @@ export const createApp = (): express.Application => {
     app.use((error: Error, request: express.Request, response: express.Response, next: express.NextFunction) => {
         if (error instanceof SyntaxError && error.message.includes('JSON')) {
             const { sendError } = require('./core/utilities/responseUtils');
-            const { ErrorCodes } = require('./core/utilities/errorCodes');
+            const { ErrorCodes } = require('./types/errorTypes');
             sendError(response, 400, "Malformed JSON in request body - please check your JSON syntax", ErrorCodes.MSG_MALFORMED_JSON);
             return;
         }

@@ -2,6 +2,16 @@
 
 A comprehensive guide to web application security concepts and practices for TCSS-460 students.
 
+> **💡 Related Code**: See implementations in [`/src/core/utilities/validationUtils.ts`](../src/core/utilities/validationUtils.ts), [`/src/app.ts`](../src/app.ts), and [`/src/core/middleware/`](../src/core/middleware/)
+
+## Quick Navigation
+- 🛡️ **Input Sanitization**: [`validationUtils.ts`](../src/core/utilities/validationUtils.ts) - `sanitizeString()` function
+- 🔒 **CORS Configuration**: [`app.ts`](../src/app.ts) - Cross-origin security setup
+- 📝 **Validation Middleware**: [`messageValidation.ts`](../src/core/middleware/messageValidation.ts) - Input validation security
+- 🔧 **Database Security**: [`database.ts`](../src/core/utilities/database.ts) - Parameterized queries for SQL injection prevention
+- 🏗️ **Validation**: [Validation Strategies](./validation-strategies.md#security-considerations) - Security-focused validation
+- 🚀 **Environment**: [Environment Configuration](./environment-configuration.md#security-best-practices) - Secure configuration management
+
 ## Table of Contents
 
 - [Cross-Site Scripting (XSS)](#cross-site-scripting-xss)

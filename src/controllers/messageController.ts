@@ -1,8 +1,13 @@
 import { Request, Response } from 'express';
 import { getPool } from '@utilities/database';
-import { ErrorCodes } from '@utilities/errorCodes';
 import { sendSuccess, sendError } from '@utilities/responseUtils';
-import { MessageRequest, MessageObject, MessageEntry, MessageRecord } from '@models';
+import {
+    MessageRequest,
+    MessageObject,
+    MessageEntry,
+    MessageRecord,
+    ErrorCodes
+} from '@/types';
 
 /**
  * Format a message object into the display string

@@ -2,6 +2,16 @@
 
 A comprehensive guide to designing professional, scalable, and maintainable APIs.
 
+> **💡 Related Code**: See implementations in [`/src/core/utilities/responseUtils.ts`](../src/core/utilities/responseUtils.ts) and [`/src/controllers/messageController.ts`](../src/controllers/messageController.ts)
+
+## Quick Navigation
+- 📝 **Response Formatting**: [`responseUtils.ts`](../src/core/utilities/responseUtils.ts) - `sendSuccess()`, `sendError()`, `sendValidationError()`
+- 🎯 **API Implementation**: [`messageController.ts`](../src/controllers/messageController.ts) - RESTful message operations
+- 🛣️ **Route Organization**: [`routes/`](../src/routes/) - RESTful URL patterns and HTTP methods
+- 🔧 **Error Codes**: [`errorCodes.ts`](../src/core/utilities/errorCodes.ts) - Standardized error response codes
+- 🏗️ **Architecture**: [Node.js Architecture](./node-express-architecture.md#routing-patterns) - How APIs fit in Express
+- 🔒 **Validation**: [Validation Strategies](./validation-strategies.md#implementation-patterns) - Input validation for APIs
+
 ## Table of Contents
 
 - [RESTful API Design](#restful-api-design)

@@ -2,6 +2,16 @@
 
 A comprehensive guide to managing application configuration across different environments.
 
+> **💡 Related Code**: See implementations in [`/src/core/utilities/envConfig.ts`](../src/core/utilities/envConfig.ts) and environment files in project root
+
+## Quick Navigation
+- ⚙️ **Configuration Utilities**: [`envConfig.ts`](../src/core/utilities/envConfig.ts) - Environment variable management
+- 📝 **Environment Files**: [`.env.development`](../.env.development), [`.env.example`](../.env.example) - Configuration examples
+- 🚀 **Startup Process**: [`index.ts`](../src/index.ts) - Environment validation and server startup
+- 🔧 **Database Config**: [`database.ts`](../src/core/utilities/database.ts) - Environment-based database connection
+- 🏗️ **Architecture**: [Node.js Architecture](./node-express-architecture.md#application-lifecycle) - Environment in application lifecycle
+- 🔒 **Security**: [Web Security Guide](./web-security-guide.md#environment-security) - Environment security practices
+
 ## Table of Contents
 
 - [Environment Variables](#environment-variables)

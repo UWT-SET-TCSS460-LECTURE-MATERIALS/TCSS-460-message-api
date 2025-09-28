@@ -2,6 +2,16 @@
 
 A comprehensive guide to input validation, data sanitization, and maintaining data integrity in web applications.
 
+> **💡 Related Code**: See implementations in [`/src/core/utilities/validationUtils.ts`](../src/core/utilities/validationUtils.ts) and [`/src/core/middleware/messageValidation.ts`](../src/core/middleware/messageValidation.ts)
+
+## Quick Navigation
+- 🔍 **Validation Utilities**: [`validationUtils.ts`](../src/core/utilities/validationUtils.ts) - Reusable validation functions
+- 🛡️ **Middleware Validation**: [`messageValidation.ts`](../src/core/middleware/messageValidation.ts) - Express validation middleware
+- 🎯 **Usage Examples**: [`messageController.ts`](../src/controllers/messageController.ts) - Validation in practice
+- 📝 **API Patterns**: [API Design Patterns](./api-design-patterns.md#error-handling) - Validation error responses
+- 🔒 **Security**: [Web Security Guide](./web-security-guide.md#input-validation-security) - Security-focused validation
+- 🏗️ **Architecture**: [Node.js Architecture](./node-express-architecture.md#middleware-system) - Validation middleware patterns
+
 ## Table of Contents
 
 - [Input Validation Fundamentals](#input-validation-fundamentals)

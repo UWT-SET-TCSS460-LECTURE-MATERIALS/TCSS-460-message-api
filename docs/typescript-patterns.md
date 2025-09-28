@@ -2,6 +2,17 @@
 
 A comprehensive guide to TypeScript patterns and best practices for web application development.
 
+> **💡 Related Code**: See implementations throughout the codebase, especially [`/src/types/`](../src/types/), [`/src/core/utilities/`](../src/core/utilities/), and [`/src/controllers/`](../src/controllers/)
+
+## Quick Navigation
+- 📝 **Message Types**: [`messageTypes.ts`](../src/types/messageTypes.ts) - Message-related type definitions
+- 🔧 **API Types**: [`apiTypes.ts`](../src/types/apiTypes.ts) - Response and transaction types
+- ⚠️ **Error Types**: [`errorTypes.ts`](../src/types/errorTypes.ts) - Standardized error codes
+- 📦 **Type Barrel**: [`types/index.ts`](../src/types/index.ts) - Centralized type exports
+- 🎯 **Controller Usage**: [`messageController.ts`](../src/controllers/messageController.ts) - Type usage in practice
+- 🏗️ **Architecture**: [Node.js Architecture](./node-express-architecture.md#mvc-architecture-pattern) - TypeScript in MVC pattern
+- 📝 **API Patterns**: [API Design Patterns](./api-design-patterns.md#response-formatting) - Type-safe API responses
+
 ## Table of Contents
 
 - [TypeScript Fundamentals](#typescript-fundamentals)
