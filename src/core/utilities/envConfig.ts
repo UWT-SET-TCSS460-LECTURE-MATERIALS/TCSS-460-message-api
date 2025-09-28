@@ -1,67 +1,14 @@
 /**
- * ENVIRONMENT CONFIGURATION - EDUCATIONAL OVERVIEW
+ * Environment configuration management with multi-environment support
  *
- * What is Environment Configuration?
- * =================================
- * Environment configuration allows the same application code to run in different environments
- * (development, testing, production) with different settings. Instead of hardcoding values
- * like database URLs or API keys, we use environment variables that can be changed without
- * modifying the source code.
+ * Handles secure loading and validation of environment variables from .env files
+ * with proper fallback handling and startup validation. Supports development,
+ * testing, and production configurations with type-safe access patterns.
  *
- * Why Environment Variables Matter:
- * ================================
- * ✅ SECURITY: Keep secrets out of source code (passwords, API keys)
- * ✅ FLEXIBILITY: Same code works in different environments
- * ✅ DEPLOYMENT: Easy to configure for different servers/platforms
- * ✅ TEAM COLLABORATION: Each developer can have their own local settings
- * ✅ CI/CD INTEGRATION: Automated deployments can inject appropriate values
- *
- * Common Environment Types:
- * ========================
- * DEVELOPMENT:
- * - Local database on localhost
- * - Debug logging enabled
- * - Hot reloading for faster development
- * - Relaxed security for convenience
- *
- * TESTING:
- * - In-memory or test database
- * - Detailed logging for debugging tests
- * - Mock external services
- * - Isolated from other environments
- *
- * PRODUCTION:
- * - Cloud database with real data
- * - Minimal logging for performance
- * - Real external service connections
- * - Maximum security and monitoring
- *
- * The .env File Pattern:
- * =====================
- * Applications use .env files to define environment variables:
- *
- * .env.development:
- * DB_HOST=localhost
- * DB_PORT=5432
- * DEBUG=true
- *
- * .env.production:
- * DB_HOST=prod-database.company.com
- * DB_PORT=5432
- * DEBUG=false
- *
- * The dotenv library loads these files and makes variables available via process.env
- *
- * Security Best Practices:
- * =======================
- * ❌ NEVER commit .env files with real secrets to version control
- * ✅ Use .env.example files to document required variables
- * ✅ Use different secrets for each environment
- * ✅ Rotate secrets regularly
- * ✅ Use secure secret management in production (AWS Secrets Manager, etc.)
- *
- * The utilities below provide a safe, consistent way to access environment variables
- * with proper validation and fallback handling.
+ * @see {@link ../../docs/environment-configuration.md#environment-variables} for configuration concepts
+ * @see {@link ../../docs/environment-configuration.md#dotenv-patterns} for .env file patterns
+ * @see {@link ../../docs/environment-configuration.md#security-practices} for security best practices
+ * @see {@link ../../docs/environment-configuration.md#multi-environment-setup} for environment types
  */
 
 import dotenv from 'dotenv';

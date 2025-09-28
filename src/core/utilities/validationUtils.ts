@@ -1,66 +1,15 @@
 /**
- * VALIDATION UTILITIES - EDUCATIONAL OVERVIEW
+ * Input validation utilities for secure, type-safe data handling
  *
- * What is Input Validation?
- * ========================
- * Input validation is the process of ensuring that user-provided data meets your application's
- * requirements before processing it. This is critical for security, data integrity, and user experience.
+ * Provides reusable validation functions for common input scenarios including
+ * string presence, email/phone formats, numeric values, and length constraints.
+ * Implements server-side validation patterns with proper type checking and
+ * sanitization for web API security.
  *
- * Why Validation Matters:
- * ======================
- * ✅ SECURITY: Prevents malicious input (SQL injection, XSS attacks)
- * ✅ DATA INTEGRITY: Ensures database contains only valid, consistent data
- * ✅ USER EXPERIENCE: Provides clear feedback when input is incorrect
- * ✅ APPLICATION STABILITY: Prevents crashes from unexpected data formats
- * ✅ BUSINESS RULES: Enforces domain-specific constraints (priority levels, formats)
- *
- * Validation vs. Sanitization:
- * ===========================
- * VALIDATION: Check if input meets requirements (reject invalid input)
- * SANITIZATION: Clean input to remove harmful content (accept and modify)
- *
- * Both are important - validate first, then sanitize accepted input.
- *
- * Common Validation Types:
- * =======================
- * 1. TYPE VALIDATION: Is it a string, number, or boolean?
- * 2. FORMAT VALIDATION: Does it match the expected pattern (email, phone)?
- * 3. RANGE VALIDATION: Is the value within acceptable limits?
- * 4. BUSINESS RULE VALIDATION: Does it meet domain-specific requirements?
- *
- * Client-Side vs. Server-Side Validation:
- * ======================================
- * CLIENT-SIDE (Browser):
- * ✅ Immediate feedback to users
- * ✅ Better user experience
- * ❌ Can be bypassed or disabled
- * ❌ Not secure on its own
- *
- * SERVER-SIDE (Your API):
- * ✅ Secure and cannot be bypassed
- * ✅ Authoritative validation
- * ✅ Protects your database and business logic
- * ❌ Slower feedback to users
- *
- * RULE: Always validate on the server, optionally add client-side for UX.
- *
- * Regular Expressions (Regex):
- * ============================
- * Regex patterns match text formats. Common patterns:
- * - Email: /^[^\s@]+@[^\s@]+\.[^\s@]+$/
- * - Phone: /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/
- * - Numbers: /^\d+$/
- *
- * Security Considerations:
- * =======================
- * 1. Never trust user input
- * 2. Validate length limits to prevent buffer overflow
- * 3. Sanitize output to prevent XSS (see: /docs/web-security-guide.md)
- * 4. Use parameterized queries to prevent SQL injection
- * 5. Validate file uploads and MIME types
- *
- * The validation utilities below provide reusable, tested validation functions
- * for common input validation scenarios in web applications.
+ * @see {@link ../../docs/validation-strategies.md#input-validation} for validation concepts
+ * @see {@link ../../docs/validation-strategies.md#validation-vs-sanitization} for approach patterns
+ * @see {@link ../../docs/web-security-guide.md#input-validation-security} for security considerations
+ * @see {@link ../../docs/validation-strategies.md#regex-patterns} for regular expression patterns
  */
 
 /**

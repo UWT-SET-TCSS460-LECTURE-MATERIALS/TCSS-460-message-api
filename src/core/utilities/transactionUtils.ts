@@ -1,71 +1,26 @@
 /**
- * DATABASE TRANSACTIONS - EDUCATIONAL OVERVIEW
+ * Database transaction utilities providing safe, atomic operations
  *
- * What is a Database Transaction?
- * ===============================
- * A database transaction is a sequence of one or more database operations that are treated as a single unit.
- * Either ALL operations succeed, or ALL operations are rolled back (undone) if any operation fails.
- * This ensures data consistency and prevents partial updates that could corrupt your database.
+ * Handles BEGIN/COMMIT/ROLLBACK automatically with proper error handling,
+ * connection management, and consistent result formatting. Implements
+ * production-ready transaction patterns for multi-step database operations.
  *
- * Think of it like a bank transfer:
- * 1. Subtract $100 from Account A
- * 2. Add $100 to Account B
- *
- * If step 2 fails, you MUST undo step 1 - otherwise money disappears from the system!
- *
- * ACID Properties (Database Fundamentals):
- * ========================================
- * Transactions follow ACID principles:
- *
- * A - ATOMICITY: All operations succeed or all fail (no partial success)
- * C - CONSISTENCY: Database remains in a valid state before and after transaction
- * I - ISOLATION: Concurrent transactions don't interfere with each other
- * D - DURABILITY: Once committed, changes are permanent (survive system crashes)
- *
- * Transaction States:
- * ==================
- * BEGIN    - Start a new transaction
- * COMMIT   - Save all changes permanently
- * ROLLBACK - Undo all changes and return to state before BEGIN
- *
- * When to Use Transactions:
- * ========================
- * ✅ Multiple related database operations that must all succeed together
- * ✅ Operations that could leave data in an inconsistent state if partially completed
- * ✅ When you need to ensure data integrity across multiple tables
- *
- * ❌ Single, simple operations (like SELECT or single INSERT)
- * ❌ Read-only operations that don't modify data
- * ❌ Operations where partial success is acceptable
- *
- * Example Scenarios Requiring Transactions:
- * ========================================
- * 1. E-commerce order: Create order record + update inventory + charge payment
- * 2. User registration: Create user account + send welcome email + log activity
- * 3. Message system: Create message + update user stats + notify subscribers
- *
- * Simple Example Without Transactions (DANGEROUS):
- * ===============================================
- * // BAD: If step 2 fails, you have an order without inventory update!
- * await pool.query('INSERT INTO orders (user_id, total) VALUES ($1, $2)', [userId, total]);
- * await pool.query('UPDATE inventory SET quantity = quantity - 1 WHERE product_id = $1', [productId]); // Could fail!
- *
- * Safe Example With Transactions:
- * ==============================
- * const client = await pool.connect();
- * try {
- *   await client.query('BEGIN');
- *   await client.query('INSERT INTO orders (user_id, total) VALUES ($1, $2)', [userId, total]);
- *   await client.query('UPDATE inventory SET quantity = quantity - 1 WHERE product_id = $1', [productId]);
- *   await client.query('COMMIT'); // Success: both operations saved
- * } catch (error) {
- *   await client.query('ROLLBACK'); // Failure: both operations undone
- *   throw error;
- * } finally {
- *   client.release();
- * }
- *
- * The utilities below provide a clean, reusable way to handle transactions safely.
+ * @see {@link ../../docs/database-fundamentals.md#database-transactions} for transaction concepts
+ * @see {@link ../../docs/database-fundamentals.md#acid-properties} for ACID properties
+ * @example
+ * // Simple transaction usage
+ * const result = await withTransaction(async (client) => {
+ *   const order = await client.query('INSERT INTO orders...');
+ *   await client.query('UPDATE inventory...');
+ *   return order.rows[0];
+ * });
+ * @example
+ * // Transaction with automatic HTTP response
+ * await executeTransactionWithResponse(
+ *   async (client) => await createOrderAndUpdateInventory(client),
+ *   response,
+ *   "Order created successfully"
+ * );
  */
 
 import { Response } from 'express';

@@ -1,75 +1,18 @@
 /**
- * API RESPONSE UTILITIES - EDUCATIONAL OVERVIEW
+ * API response utilities for consistent HTTP response formatting
  *
- * What are Response Utilities?
- * ===========================
- * Response utilities provide a consistent way to format all API responses across your application.
- * Instead of manually constructing JSON responses in every controller, these utilities ensure
- * every response follows the same structure and format.
+ * Provides standardized success/error response patterns with proper HTTP
+ * status codes, consistent structure, and type-safe data handling across
+ * all API endpoints. Simplifies frontend integration and debugging.
  *
- * Why Consistent Response Format Matters:
- * ======================================
- * ✅ Frontend developers know exactly what to expect from every endpoint
- * ✅ Error handling becomes predictable and reliable
- * ✅ API documentation is cleaner and more professional
- * ✅ Debugging is easier when all responses follow the same pattern
- * ✅ Automated testing can rely on consistent response structure
- *
- * Standard API Response Pattern:
- * =============================
- * Every response includes:
- * - success: boolean (true for 2xx status codes, false for 4xx/5xx)
- * - message: optional human-readable description
- * - data: optional payload (varies by endpoint)
- * - errorCode: optional machine-readable error identifier
- * - errors: optional detailed validation errors
- *
- * HTTP Status Codes (Important for Web APIs):
- * ===========================================
- * 200 OK - Request succeeded, data returned
- * 201 Created - Resource successfully created
- * 400 Bad Request - Client sent invalid data
- * 404 Not Found - Requested resource doesn't exist
- * 500 Internal Server Error - Server-side problem
- *
- * Example Success Response:
- * ========================
- * {
- * "success": true,
- *   "message": "Message created successfully",
- *   "data": {
- *     "id": 123,
- *     "entry": "{1} - [John] says: Hello World"
- *   }
- * }
- *
- * Example Error Response:
- * ======================
- * {
- *   "success": false,
- *   "message": "Name already exists - please choose a different name",
- *   "errorCode": "MSG_NAME_EXISTS"
- * }
- *
- * Frontend Integration Benefits:
- * =============================
- * With consistent responses, frontend code becomes simpler:
- *
- * ```javascript
- * const response = await fetch('/api/message', { method: 'POST', ... });
- * const result = await response.json();
- *
- * if (result.success) {
- *   // Handle success - data is in result.data
- *   console.log('Success:', result.message);
- *   updateUI(result.data);
- * } else {
- *   // Handle error - message explains what went wrong
- *   showError(result.message);
- * }
- * ```
- *
- * The utilities below implement this pattern consistently across all endpoints.
+ * @see {@link ../../docs/api-design-patterns.md#response-formatting} for response patterns
+ * @see {@link ../../docs/api-design-patterns.md#http-status-codes} for status code usage
+ * @example
+ * // Success response
+ * sendSuccess(response, { id: 123, name: "John" }, "User created", 201);
+ * @example
+ * // Error response
+ * sendError(response, 400, "Invalid input", "VALIDATION_ERROR");
  */
 
 import { Response } from 'express';
