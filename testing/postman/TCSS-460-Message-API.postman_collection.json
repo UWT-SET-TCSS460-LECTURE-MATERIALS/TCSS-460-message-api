@@ -1,0 +1,1120 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "TCSS-460 Message API",
+		"description": "Comprehensive test collection for the TCSS-460 Educational Message API.\n\nThis collection provides complete test coverage for all API endpoints including:\n- Message CRUD operations\n- Priority-based filtering\n- Validation testing\n- Error handling scenarios\n- Health monitoring\n\nDesigned for educational purposes to demonstrate API testing best practices.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"item": [
+				{
+					"name": "GET Health Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Educational: Testing basic health endpoint",
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has correct structure', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('status');",
+									"    pm.expect(responseJson).to.have.property('timestamp');",
+									"    pm.expect(responseJson.status).to.eql('OK');",
+									"});",
+									"",
+									"pm.test('Response time is acceptable', function () {",
+									"    pm.expect(pm.response.responseTime).to.be.below(500);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Health check endpoint to verify API availability and basic functionality."
+					},
+					"response": []
+				}
+			],
+			"description": "Basic health monitoring endpoints"
+		},
+		{
+			"name": "Message Creation",
+			"item": [
+				{
+					"name": "Create Message - Priority 1 (High)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201 Created', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Response has success structure', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('success', true);",
+									"    pm.expect(responseJson).to.have.property('message');",
+									"    pm.expect(responseJson).to.have.property('data');",
+									"});",
+									"",
+									"pm.test('Created message has correct data', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.data).to.have.property('name', 'TestUser1');",
+									"    pm.expect(responseJson.data).to.have.property('priority', 1);",
+									"    pm.expect(responseJson.data).to.have.property('formatted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{test_name_1}}\",\n  \"message\": \"{{test_message}}\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Create a new message with high priority (1). Tests successful message creation and response structure."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Message - Priority 2 (Medium)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201 Created', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Message created with medium priority', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.data.priority).to.eql(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{test_name_2}}\",\n  \"message\": \"Medium priority test message\",\n  \"priority\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Create a message with medium priority to test priority handling."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Message - Priority 3 (Low)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 201 Created', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Message created with low priority', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.data.priority).to.eql(3);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"LowPriorityUser\",\n  \"message\": \"Low priority test message\",\n  \"priority\": 3\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Create a message with low priority to test all priority levels."
+					},
+					"response": []
+				}
+			],
+			"description": "Test successful message creation scenarios"
+		},
+		{
+			"name": "Message Creation - Validation Errors",
+			"item": [
+				{
+					"name": "Create Message - Missing Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Response indicates validation error', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('success', false);",
+									"    pm.expect(responseJson).to.have.property('errorCode', 'VALIDATION_ERROR');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"message\": \"Missing name field\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test validation error when required 'name' field is missing."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Message - Missing Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error for missing message', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"    pm.expect(responseJson.errorCode).to.eql('VALIDATION_ERROR');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"TestUser\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test validation error when required 'message' field is missing."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Message - Invalid Priority (0)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error for invalid priority', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"InvalidPriorityUser\",\n  \"message\": \"Testing invalid priority\",\n  \"priority\": 0\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test validation error for priority value below valid range (1-3)."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Message - Invalid Priority (4)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error for priority above range', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"HighInvalidPriorityUser\",\n  \"message\": \"Testing priority above range\",\n  \"priority\": {{invalid_priority}}\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test validation error for priority value above valid range (1-3)."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Message - Duplicate Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error indicates name already exists', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"    pm.expect(responseJson.errorCode).to.eql('MSG_NAME_EXISTS');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{test_name_1}}\",\n  \"message\": \"Attempting duplicate name\",\n  \"priority\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test business rule validation - names must be unique. Should fail if TestUser1 already exists."
+					},
+					"response": []
+				},
+				{
+					"name": "Create Message - Malformed JSON",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error indicates malformed JSON', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"    pm.expect(responseJson.errorCode).to.eql('MSG_MALFORMED_JSON');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"TestUser\",\n  \"message\": \"Invalid JSON - missing quote,\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test JSON syntax error handling. Contains intentionally malformed JSON."
+					},
+					"response": []
+				}
+			],
+			"description": "Test validation and error handling scenarios"
+		},
+		{
+			"name": "Message Retrieval",
+			"item": [
+				{
+					"name": "Get All Messages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has correct structure', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson).to.have.property('success', true);",
+									"    pm.expect(responseJson).to.have.property('data');",
+									"    pm.expect(responseJson.data).to.have.property('entries');",
+									"    pm.expect(responseJson.data).to.have.property('count');",
+									"});",
+									"",
+									"pm.test('Entries are properly formatted', function () {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.data.count > 0) {",
+									"        const firstEntry = responseJson.data.entries[0];",
+									"        pm.expect(firstEntry).to.have.property('name');",
+									"        pm.expect(firstEntry).to.have.property('message');",
+									"        pm.expect(firstEntry).to.have.property('priority');",
+									"        pm.expect(firstEntry).to.have.property('formatted');",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message/all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message",
+								"all"
+							]
+						},
+						"description": "Retrieve all messages from the database. Tests response structure and data formatting."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Messages by Priority 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All returned messages have priority 1', function () {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.data.count > 0) {",
+									"        responseJson.data.entries.forEach(entry => {",
+									"            pm.expect(entry.priority).to.eql(1);",
+									"        });",
+									"    }",
+									"});",
+									"",
+									"pm.test('Filter parameter is reflected in response', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.data).to.have.property('priority', 1);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message?priority=1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Test priority-based filtering. Should return only high priority (1) messages."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Messages by Priority 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All returned messages have priority 2', function () {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.data.count > 0) {",
+									"        responseJson.data.entries.forEach(entry => {",
+									"            pm.expect(entry.priority).to.eql(2);",
+									"        });",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message?priority=2",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Test filtering for medium priority (2) messages."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Messages by Priority 3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('All returned messages have priority 3', function () {",
+									"    const responseJson = pm.response.json();",
+									"    if (responseJson.data.count > 0) {",
+									"        responseJson.data.entries.forEach(entry => {",
+									"            pm.expect(entry.priority).to.eql(3);",
+									"        });",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message?priority=3",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "3"
+								}
+							]
+						},
+						"description": "Test filtering for low priority (3) messages."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Messages - Invalid Priority",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Error indicates invalid priority parameter', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message?priority=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Test validation of priority query parameter. Invalid priority should return 400."
+					},
+					"response": []
+				}
+			],
+			"description": "Test message retrieval and filtering functionality"
+		},
+		{
+			"name": "Message by Name",
+			"item": [
+				{
+					"name": "Get Message by Name - Existing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Returns correct message data', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.true;",
+									"    pm.expect(responseJson.data).to.have.property('name', pm.environment.get('test_name_1'));",
+									"    pm.expect(responseJson.data).to.have.property('formatted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message/{{test_name_1}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message",
+								"{{test_name_1}}"
+							]
+						},
+						"description": "Retrieve a specific message by name. Tests path parameter handling and individual message retrieval."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Message by Name - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404 Not Found', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error indicates message not found', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"    pm.expect(responseJson.errorCode).to.eql('MSG_NOT_FOUND');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message/NonExistentUser",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message",
+								"NonExistentUser"
+							]
+						},
+						"description": "Test 404 error handling when requesting a message that doesn't exist."
+					},
+					"response": []
+				}
+			],
+			"description": "Test individual message retrieval by name"
+		},
+		{
+			"name": "Message Updates",
+			"item": [
+				{
+					"name": "Update Message - Existing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Message updated successfully', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.true;",
+									"    pm.expect(responseJson.data).to.have.property('message', 'Updated message content');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{test_name_1}}\",\n  \"message\": \"Updated message content\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Update an existing message. Tests PUT operation and partial updates."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Message - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404 Not Found', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error indicates message not found for update', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"    pm.expect(responseJson.errorCode).to.eql('MSG_NOT_FOUND');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"NonExistentUser\",\n  \"message\": \"Trying to update non-existent message\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test 404 error when trying to update a message that doesn't exist."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Message - Invalid Data",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 400 Bad Request', function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test('Validation error for invalid update data', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{test_name_1}}\",\n  \"message\": \"\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/message",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Test validation during update operation. Empty message and invalid priority should fail."
+					},
+					"response": []
+				}
+			],
+			"description": "Test message update functionality"
+		},
+		{
+			"name": "Message Deletion",
+			"item": [
+				{
+					"name": "Delete Message - Existing",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Message deleted successfully', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.true;",
+									"    pm.expect(responseJson.message).to.include('deleted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message/LowPriorityUser",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message",
+								"LowPriorityUser"
+							]
+						},
+						"description": "Delete an existing message. Tests DELETE operation functionality."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Message - Verify Deletion",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404 Not Found', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Confirms message was actually deleted', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"    pm.expect(responseJson.errorCode).to.eql('MSG_NOT_FOUND');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message/LowPriorityUser",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message",
+								"LowPriorityUser"
+							]
+						},
+						"description": "Verify that the deleted message is no longer accessible. Should return 404."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Message - Not Found",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 404 Not Found', function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test('Error indicates message not found for deletion', function () {",
+									"    const responseJson = pm.response.json();",
+									"    pm.expect(responseJson.success).to.be.false;",
+									"    pm.expect(responseJson.errorCode).to.eql('MSG_NOT_FOUND');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/message/AlreadyDeletedUser",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"message",
+								"AlreadyDeletedUser"
+							]
+						},
+						"description": "Test 404 error when trying to delete a message that doesn't exist."
+					},
+					"response": []
+				}
+			],
+			"description": "Test message deletion functionality and verification"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Educational: Pre-request script for collection-wide setup",
+					"console.log('Starting API test for:', pm.info.requestName);",
+					"",
+					"// Set dynamic timestamp for testing",
+					"pm.environment.set('timestamp', new Date().toISOString());"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Educational: Collection-wide test validations",
+					"pm.test('Response is JSON', function () {",
+					"    pm.response.to.be.json;",
+					"});",
+					"",
+					"pm.test('Response time is reasonable', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"// Log response for educational purposes",
+					"console.log('Response Status:', pm.response.status);",
+					"console.log('Response Time:', pm.response.responseTime + 'ms');"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "collection_version",
+			"value": "1.0.0",
+			"type": "string"
+		}
+	]
+}
