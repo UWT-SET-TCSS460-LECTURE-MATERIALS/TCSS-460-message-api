@@ -17,6 +17,14 @@ marked.use({
     breaks: true,
     gfm: true,
     renderer: {
+        /**
+         * Custom code block renderer with syntax highlighting
+         *
+         * @param token - Token object containing code block information
+         * @param token.text - The code text to be highlighted
+         * @param token.lang - Optional language identifier for syntax highlighting
+         * @returns HTML string with highlighted code
+         */
         code(token: { text: string; lang?: string }): string {
             const code = token.text;
             const language = token.lang;
@@ -24,7 +32,7 @@ marked.use({
             if (language && hljs.getLanguage(language)) {
                 try {
                     return `<pre><code class="hljs language-${language}">${hljs.highlight(code, { language }).value}</code></pre>`;
-                } catch (err) {
+                } catch {
                     // Fall back to auto-detection
                 }
             }

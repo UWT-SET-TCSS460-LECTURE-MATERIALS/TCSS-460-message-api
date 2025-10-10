@@ -24,27 +24,16 @@ const router = Router();
 /**
  * Documentation index page
  *
- * @swagger
- * /doc:
- *   get:
- *     summary: Documentation index page
- *     description: |
- *       Displays an index of all available documentation files with links
- *       to both rendered HTML and raw markdown versions.
+ * Displays an index of all available documentation files with links
+ * to both rendered HTML and raw markdown versions.
  *
- *       **Educational Focus:**
- *       - Dynamic content generation from file system
- *       - HTML response with navigation
- *       - Integration with existing API documentation
- *     tags: [Documentation]
- *     responses:
- *       200:
- *         description: Documentation index page
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- *               description: Complete HTML page with documentation index
+ * Educational Focus:
+ * - Dynamic content generation from file system
+ * - HTML response with navigation
+ * - Integration with existing API documentation
+ *
+ * @param request - Express request object
+ * @param response - Express response object
  */
 router.get('/', (request: Request, response: Response) => {
     try {
@@ -67,74 +56,16 @@ router.get('/', (request: Request, response: Response) => {
 /**
  * Serve raw markdown files
  *
- * @swagger
- * /doc/raw/{filename}:
- *   get:
- *     summary: Serve raw markdown file
- *     description: |
- *       Returns the raw markdown content of documentation files.
- *       Useful for downloading or viewing source markdown.
+ * Returns the raw markdown content of documentation files.
+ * Useful for downloading or viewing source markdown.
  *
- *       **Educational Focus:**
- *       - Content-Type header for plain text
- *       - File serving with proper MIME types
- *       - Path parameter validation for security
- *     tags: [Documentation]
- *     parameters:
- *       - in: path
- *         name: filename
- *         required: true
- *         schema:
- *           type: string
- *           pattern: '^[a-zA-Z0-9_-]+\.md$'
- *           example: 'API_DOCUMENTATION.md'
- *         description: Name of the markdown file to retrieve
- *     responses:
- *       200:
- *         description: Raw markdown content
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
- *               description: Raw markdown file content
- *       404:
- *         description: Documentation file not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Documentation file 'example.md' not found"
- *                 code:
- *                   type: string
- *                   example: 'DOCS_FILE_NOT_FOUND'
- *                 timestamp:
- *                   type: string
- *                   example: '2024-01-15T10:30:00.000Z'
- *       400:
- *         description: Invalid filename format
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: 'Invalid file path'
- *                 code:
- *                   type: string
- *                   example: 'INVALID_PATH'
- *                 timestamp:
- *                   type: string
- *                   example: '2024-01-15T10:30:00.000Z'
+ * Educational Focus:
+ * - Content-Type header for plain text
+ * - File serving with proper MIME types
+ * - Path parameter validation for security
+ *
+ * @param request - Express request object with filename parameter
+ * @param response - Express response object
  */
 router.get('/raw/:filename',
     [
@@ -204,75 +135,17 @@ router.get('/raw/:filename',
 /**
  * Serve rendered markdown files as HTML
  *
- * @swagger
- * /doc/{filename}:
- *   get:
- *     summary: Serve rendered markdown file as HTML
- *     description: |
- *       Converts markdown documentation to HTML with syntax highlighting
- *       and styled presentation. Provides a user-friendly reading experience.
+ * Converts markdown documentation to HTML with syntax highlighting
+ * and styled presentation. Provides a user-friendly reading experience.
  *
- *       **Educational Focus:**
- *       - Markdown to HTML conversion
- *       - Syntax highlighting for code blocks
- *       - CSS styling for documentation
- *       - Content transformation pipelines
- *     tags: [Documentation]
- *     parameters:
- *       - in: path
- *         name: filename
- *         required: true
- *         schema:
- *           type: string
- *           pattern: '^[a-zA-Z0-9_-]+\.md$'
- *           example: 'API_DOCUMENTATION.md'
- *         description: Name of the markdown file to render
- *     responses:
- *       200:
- *         description: Rendered HTML documentation
- *         content:
- *           text/html:
- *             schema:
- *               type: string
- *               description: Complete HTML page with styled documentation
- *       404:
- *         description: Documentation file not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: "Documentation file 'example.md' not found"
- *                 code:
- *                   type: string
- *                   example: 'DOCS_FILE_NOT_FOUND'
- *                 timestamp:
- *                   type: string
- *                   example: '2024-01-15T10:30:00.000Z'
- *       400:
- *         description: Invalid filename format
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: false
- *                 message:
- *                   type: string
- *                   example: 'Invalid file path'
- *                 code:
- *                   type: string
- *                   example: 'INVALID_PATH'
- *                 timestamp:
- *                   type: string
- *                   example: '2024-01-15T10:30:00.000Z'
+ * Educational Focus:
+ * - Markdown to HTML conversion
+ * - Syntax highlighting for code blocks
+ * - CSS styling for documentation
+ * - Content transformation pipelines
+ *
+ * @param request - Express request object with filename parameter
+ * @param response - Express response object
  */
 router.get('/:filename',
     [

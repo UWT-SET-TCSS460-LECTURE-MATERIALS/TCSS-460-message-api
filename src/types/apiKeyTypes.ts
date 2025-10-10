@@ -12,7 +12,7 @@
 /**
  * Request payload for generating a new API key
  * Used by POST /api-key endpoint validation and processing
- * Email is optional but name is required for key identification
+ * Both name and email are required for key identification
  *
  * @interface ApiKeyRequest
  * @example
@@ -30,8 +30,8 @@
 export interface ApiKeyRequest {
     /** Name of the person or service requesting the API key (required) */
     name: string;
-    /** Email address for contact/notification purposes (optional) */
-    email?: string;
+    /** Email address for contact/notification purposes (required) */
+    email: string;
 }
 
 /**
@@ -141,7 +141,6 @@ export interface ApiKeyResponse {
  * Middleware attaches apiKey property after successful validation
  *
  * @interface AuthenticatedRequest
- * @augments Express.Request
  * @example
  * import { Request, Response } from 'express';
  *
@@ -150,7 +149,7 @@ export interface ApiKeyResponse {
  *   console.log(`Request from: ${request.apiKey.name}`);
  * };
  */
-export interface AuthenticatedRequest extends Express.Request {
+export interface AuthenticatedRequest {
     /** API key information attached by authentication middleware (undefined if not authenticated) */
     apiKey?: ApiKeyInfo;
 }

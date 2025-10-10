@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { messageRoutes } from './messageRoutes';
 import { docsRoutes } from './docsRoutes';
+import { apiKeyRoutes } from './apiKeyRoutes';
 
 export const openRoutes = Router();
 
@@ -14,3 +15,6 @@ openRoutes.use('/message', messageRoutes);
 
 // Documentation routes
 openRoutes.use('/doc', docsRoutes);
+
+// API Key generation routes
+openRoutes.use('/api-key', apiKeyRoutes);

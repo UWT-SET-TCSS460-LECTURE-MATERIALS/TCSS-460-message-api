@@ -33,6 +33,7 @@ const PORT = process.env.PORT || 4000;
  * // 🚀 Server running on port 4000
  * // 📖 API Documentation (Swagger): http://localhost:4000/api-docs
  * // 📚 Educational Documentation: http://localhost:4000/doc
+ * // 🔑 Generate API Key: http://localhost:4000/api-key
  * // 🔍 Health check: http://localhost:4000/health
  * @example
  * // Graceful shutdown on SIGTERM (production deployment)
@@ -56,6 +57,7 @@ async function startServer() {
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📖 API Documentation (Swagger): http://localhost:${PORT}/api-docs`);
             console.log(`📚 Educational Documentation: http://localhost:${PORT}/doc`);
+            console.log(`🔑 Generate API Key: http://localhost:${PORT}/api-key`);
             console.log(`🔍 Health check: http://localhost:${PORT}/health`);
         });
 
