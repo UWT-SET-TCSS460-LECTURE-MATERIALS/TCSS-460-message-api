@@ -15,3 +15,4 @@
 
 // Barrel exports for controllers
 export * from './messageController';
+export * from './apiKeyController';

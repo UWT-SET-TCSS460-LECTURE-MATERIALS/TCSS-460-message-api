@@ -5,3 +5,4 @@ export * from './errorCodes';
 export * from './responseUtils';
 export * from './transactionUtils';
 export * from './validationUtils';
+export * from './apiKeyUtils';

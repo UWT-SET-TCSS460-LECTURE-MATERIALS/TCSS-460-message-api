@@ -1,10 +1,8 @@
 import { Router } from 'express';
+import { protectedMessageRoutes } from './messageRoutes';
 
 export const closedRoutes = Router();
 
-// Apply authentication middleware to all closed routes
-// closedRoutes.use(authMiddleware);
-
-// Placeholder for future protected routes
-// closedRoutes.get('/profile', ExampleController.getProfile);
-// closedRoutes.post('/resources', ExampleController.createResource);
+// Protected message routes (require API key authentication)
+// Authentication is applied within the messageRoutes module
+closedRoutes.use('/message', protectedMessageRoutes);

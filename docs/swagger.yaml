@@ -37,6 +37,10 @@ servers:
 tags:
   - name: Messages
     description: Message CRUD operations for creating, reading, updating, and deleting messages
+  - name: Authentication
+    description: API key generation and management endpoints
+  - name: Protected Messages
+    description: Message endpoints requiring API key authentication
   - name: Health
     description: System health and status monitoring endpoints
   - name: Documentation
@@ -64,6 +68,110 @@ paths:
                     type: string
                     format: date-time
                     example: '2024-01-15T10:30:00.000Z'
+
+  /api-key:
+    get:
+      tags:
+        - Authentication
+      summary: Serve API key generation form
+      description: |
+        Returns an HTML page with a form to generate a new API key.
+        Users can enter their name and email to receive a unique API key.
+
+        **Educational Note:**
+        This endpoint demonstrates how APIs can serve both JSON and HTML content.
+      responses:
+        '200':
+          description: HTML form for API key generation
+          content:
+            text/html:
+              schema:
+                type: string
+
+    post:
+      tags:
+        - Authentication
+      summary: Generate a new API key
+      description: |
+        Generates a new API key for authentication with protected endpoints.
+
+        **How it works:**
+        1. Validates name and email
+        2. Generates a cryptographically secure UUID v4 key
+        3. Stores key in database with metadata
+        4. Returns key (shown only once - must be saved!)
+
+        **Educational Notes:**
+        - Keys are stored in database (stateful authentication)
+        - UUID v4 provides sufficient randomness for security
+        - Request tracking enabled (last_used_at, request_count)
+        - Keys can be revoked by setting is_active = false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 255
+                  description: Name of the person or service
+                  example: John Doe
+                email:
+                  type: string
+                  format: email
+                  description: Email address for contact
+                  example: john@example.com
+      responses:
+        '201':
+          description: API key generated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "API key generated successfully - save this key, it won't be shown again!"
+                  data:
+                    type: object
+                    properties:
+                      api_key:
+                        type: string
+                        format: uuid
+                        description: The generated API key (UUID v4 format)
+                        example: 550e8400-e29b-41d4-a716-446655440000
+                      name:
+                        type: string
+                        example: John Doe
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: '2024-01-15T10:30:00.000Z'
+                      usage:
+                        type: string
+                        description: Instructions for using the API key
+                        example: 'Include this key in the X-API-Key header for protected endpoints: curl -H "X-API-Key: 550e8400-e29b-41d4-a716-446655440000" http://localhost:4000/protected/message/all'
+        '400':
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /message:
     post:
@@ -466,6 +574,432 @@ paths:
         '404':
           description: Documentation file not found
 
+  /protected/message:
+    post:
+      tags:
+        - Protected Messages
+      summary: Create a new message (requires API key)
+      description: |
+        Creates a new message entry in the database with a unique sender name.
+        **Requires authentication via X-API-Key header.**
+
+        **Validation Rules:**
+        - Name must be unique (1-255 characters, trimmed)
+        - Message must be non-empty after trimming
+        - Priority must be 1, 2, or 3
+
+        **Educational Note:**
+        This is the protected version of `POST /message`. Same functionality,
+        but requires API key authentication. Compare the security requirements
+        between public and protected endpoints.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+            examples:
+              withApiKey:
+                summary: Creating a message with API key
+                value:
+                  name: John Doe
+                  message: This is a protected message!
+                  priority: 1
+      responses:
+        '201':
+          description: Message created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entry:
+                            type: string
+                            example: '{1} - [John Doe] says: This is a protected message!'
+                          messageId:
+                            type: integer
+                            example: 123
+                          name:
+                            type: string
+                            example: John Doe
+                          message:
+                            type: string
+                            example: This is a protected message!
+                          priority:
+                            type: integer
+                            example: 1
+        '400':
+          description: Invalid input or name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                missingKey:
+                  summary: Missing API key
+                  value:
+                    success: false
+                    message: API key required - visit /api-key to generate one
+                    code: AUTH_KEY_REQUIRED
+                    timestamp: '2024-01-15T10:30:00.000Z'
+                invalidKey:
+                  summary: Invalid API key
+                  value:
+                    success: false
+                    message: Invalid API key - please check your key or generate a new one at /api-key
+                    code: AUTH_KEY_INVALID
+                    timestamp: '2024-01-15T10:30:00.000Z'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Protected Messages
+      summary: Get messages by priority (requires API key)
+      description: |
+        Retrieves all messages with a specific priority level, ordered by creation date (newest first).
+        **Requires authentication via X-API-Key header.**
+
+        **Priority Levels:**
+        - 1 = High priority
+        - 2 = Medium priority
+        - 3 = Low priority
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: priority
+          in: query
+          required: true
+          description: Priority level to filter by (1, 2, or 3)
+          schema:
+            type: integer
+            enum: [1, 2, 3]
+            example: 1
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entries:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MessageEntry'
+                          count:
+                            type: integer
+                            example: 2
+                          priority:
+                            type: integer
+                            example: 1
+        '400':
+          description: Invalid priority parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No messages found with specified priority
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Protected Messages
+      summary: Update an existing message (requires API key)
+      description: |
+        Updates the message content for an existing entry identified by sender name.
+        **Requires authentication via X-API-Key header.**
+
+        **Note:** Priority cannot be changed through this endpoint.
+      security:
+        - ApiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - message
+              properties:
+                name:
+                  type: string
+                  description: Name of the sender to update (must exist)
+                  example: John Doe
+                message:
+                  type: string
+                  description: New message content
+                  example: Updated protected message
+      responses:
+        '200':
+          description: Message updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entry:
+                            type: string
+                            example: '{2} - [John Doe] says: Updated protected message'
+                          name:
+                            type: string
+                            example: John Doe
+                          message:
+                            type: string
+                            example: Updated protected message
+                          priority:
+                            type: integer
+                            example: 2
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Message with specified name not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Protected Messages
+      summary: Delete messages by priority (requires API key)
+      description: |
+        Deletes all messages with a specific priority level from the database.
+        **Requires authentication via X-API-Key header.**
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: priority
+          in: query
+          required: true
+          description: Priority level of messages to delete (1, 2, or 3)
+          schema:
+            type: integer
+            enum: [1, 2, 3]
+            example: 1
+      responses:
+        '200':
+          description: Messages deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deletedCount:
+                            type: integer
+                            description: Number of messages deleted
+                            example: 3
+                          priority:
+                            type: integer
+                            example: 1
+        '400':
+          description: Invalid priority parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No messages found with specified priority
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /protected/message/all:
+    get:
+      tags:
+        - Protected Messages
+      summary: Get all messages (requires API key)
+      description: |
+        Retrieves all messages from the database regardless of priority level.
+        **Requires authentication via X-API-Key header.**
+
+        Returns messages ordered by creation date (newest first).
+
+        **Example with curl:**
+        ```
+        curl -H "X-API-Key: 550e8400-e29b-41d4-a716-446655440000" \
+             http://localhost:4000/protected/message/all
+        ```
+      security:
+        - ApiKeyAuth: []
+      responses:
+        '200':
+          description: All messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entries:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MessageEntry'
+                          count:
+                            type: integer
+                            description: Total number of messages
+                            example: 15
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /protected/message/{name}:
+    get:
+      tags:
+        - Protected Messages
+      summary: Get message by sender name (requires API key)
+      description: |
+        Retrieves a specific message by the sender's unique name.
+        **Requires authentication via X-API-Key header.**
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Name of the message sender to look up
+          schema:
+            type: string
+            example: John Doe
+      responses:
+        '200':
+          description: Message found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MessageEntry'
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Message with specified name not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Protected Messages
+      summary: Delete message by sender name (requires API key)
+      description: |
+        Deletes a specific message identified by the sender's unique name.
+        **Requires authentication via X-API-Key header.**
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Name of the message sender to delete
+          schema:
+            type: string
+            example: John Doe
+      responses:
+        '200':
+          description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deletedName:
+                            type: string
+                            description: Name of the deleted message sender
+                            example: John Doe
+        '401':
+          description: Unauthorized - missing or invalid API key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Message with specified name not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     MessageRequest:
@@ -552,3 +1086,27 @@ components:
           type: string
           format: date-time
           example: '2024-01-15T10:30:00.000Z'
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key for accessing protected endpoints.
+
+        **How to get an API key:**
+        1. Visit `/api-key` to generate a new key
+        2. Provide your name and email
+        3. Copy the generated key (shown only once)
+        4. Include the key in the `X-API-Key` header for protected requests
+
+        **Example:**
+        ```
+        curl -H "X-API-Key: 550e8400-e29b-41d4-a716-446655440000" \
+             http://localhost:4000/protected/message/all
+        ```
+
+        **Educational Note:**
+        This demonstrates stateful authentication where keys are stored in a database
+        and validated on each request. Compare this with stateless JWT authentication.

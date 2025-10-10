@@ -184,14 +184,15 @@ export const sanitizeString = (input: string): string => {
  * Validate priority level for message API (domain-specific validation)
  * Enforces business rule: priority must be integer between 1 (highest) and 3 (lowest)
  * This is an example of domain-specific validation beyond basic type checking
+ * Note: Only accepts actual numbers, not string representations
  *
- * @param priority - Priority value to validate (can be any type)
+ * @param priority - Priority value to validate (must be number type)
  * @returns boolean indicating if priority is valid (1, 2, or 3)
  * @example
  * isValidPriority(1)      // true (high priority)
  * isValidPriority(2)      // true (medium priority)
  * isValidPriority(3)      // true (low priority)
- * isValidPriority("2")    // true (string numbers accepted)
+ * isValidPriority("2")    // false (strings not accepted, use parseInt first)
  * isValidPriority(0)      // false (below minimum)
  * isValidPriority(4)      // false (above maximum)
  * isValidPriority(1.5)    // false (not an integer)
@@ -203,6 +204,5 @@ export const sanitizeString = (input: string): string => {
  * }
  */
 export const isValidPriority = (priority: any): boolean => {
-    const num = parseInt(priority);
-    return Number.isInteger(num) && num >= 1 && num <= 3;
+    return typeof priority === 'number' && Number.isInteger(priority) && priority >= 1 && priority <= 3;
 };
