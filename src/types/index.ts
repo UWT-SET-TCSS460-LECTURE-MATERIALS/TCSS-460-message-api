@@ -19,3 +19,4 @@
 export * from './messageTypes';
 export * from './apiTypes';
 export * from './errorTypes';
+export * from './apiKeyTypes';

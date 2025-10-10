@@ -11,6 +11,7 @@ This API showcases:
 - Error handling patterns with error codes
 - Database operations with PostgreSQL connection pooling
 - API documentation with OpenAPI/Swagger
+- **API Key Authentication** (stateful, header-based authentication) 🔑
 
 **Learning Objectives:**
 - Understand RESTful API design principles
@@ -19,6 +20,7 @@ This API showcases:
 - Create consistent API responses
 - Work with databases in Node.js applications
 - Document APIs for maintainability
+- **Learn API authentication patterns (API Keys vs JWT)** 🔐
         
 
 ## API Information
