@@ -17,10 +17,9 @@
 
 import express from 'express';
 import cors from 'cors';
-// TODO: Add Swagger documentation setup
-// import swaggerUi from 'swagger-ui-express';
-// import YAML from 'yamljs';
-// import path from 'path';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs';
+import path from 'path';
 import { routes } from './routes';
 
 /**
@@ -52,9 +51,9 @@ export const createApp = (): express.Application => {
     app.use(express.json({ limit: '10mb' }));
     app.use(express.urlencoded({ extended: true }));
 
-    // API Documentation (will be added later)
-    // const swaggerDocument = YAML.load(path.join(__dirname, '../docs/swagger.yaml'));
-    // app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    // API Documentation - Swagger UI
+    const swaggerDocument = YAML.load(path.join(__dirname, '../docs/swagger.yaml'));
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
     // Routes - mount directly to match OpenAPI specification
     app.use('/', routes);

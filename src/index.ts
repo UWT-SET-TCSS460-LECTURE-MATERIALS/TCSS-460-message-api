@@ -30,9 +30,10 @@ const PORT = process.env.PORT || 4000;
  * // Console output:
  * // ✅ Environment variables validated successfully
  * // ✅ Database connection established successfully
- * // 🚀 Server running on port 8000
- * // 📚 API Documentation: http://localhost:8000/api-docs
- * // 🔍 Health check: http://localhost:8000/health
+ * // 🚀 Server running on port 4000
+ * // 📖 API Documentation (Swagger): http://localhost:4000/api-docs
+ * // 📚 Educational Documentation: http://localhost:4000/doc
+ * // 🔍 Health check: http://localhost:4000/health
  * @example
  * // Graceful shutdown on SIGTERM (production deployment)
  * // SIGTERM received. Starting graceful shutdown...
@@ -53,7 +54,8 @@ async function startServer() {
         // Start HTTP server
         const server = app.listen(PORT, () => {
             console.log(`🚀 Server running on port ${PORT}`);
-            console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+            console.log(`📖 API Documentation (Swagger): http://localhost:${PORT}/api-docs`);
+            console.log(`📚 Educational Documentation: http://localhost:${PORT}/doc`);
             console.log(`🔍 Health check: http://localhost:${PORT}/health`);
         });
 

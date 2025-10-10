@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { messageRoutes } from './messageRoutes';
+import { docsRoutes } from './docsRoutes';
 
 export const openRoutes = Router();
 
@@ -10,3 +11,6 @@ openRoutes.get('/health', (request, response) => {
 
 // Message API routes
 openRoutes.use('/message', messageRoutes);
+
+// Documentation routes
+openRoutes.use('/doc', docsRoutes);

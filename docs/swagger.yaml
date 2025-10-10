@@ -1,0 +1,554 @@
+openapi: 3.0.0
+info:
+  title: TCSS-460 Message API
+  version: 1.0.0
+  description: |
+    Educational REST API demonstrating modern Node.js/Express/TypeScript patterns for TCSS-460.
+
+    This API showcases:
+    - RESTful message CRUD operations with PostgreSQL database
+    - HTTP method semantics (GET, POST, PATCH, DELETE)
+    - Request parameter validation (query, path, body)
+    - Input validation and sanitization with express-validator
+    - Standardized response formats with success/error handling
+    - Database transaction management
+    - Type-safe TypeScript implementations
+
+    **Learning Objectives:**
+    - Understand RESTful API design principles
+    - Practice HTTP protocol fundamentals
+    - Implement proper input validation
+    - Create consistent API responses
+    - Master database CRUD operations
+    - Document APIs for maintainability
+  contact:
+    name: TCSS-460 Course
+    email: cfb3@uw.edu
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:4000
+    description: Development server
+  - url: http://localhost:5000
+    description: Alternative development port
+
+tags:
+  - name: Messages
+    description: Message CRUD operations for creating, reading, updating, and deleting messages
+  - name: Health
+    description: System health and status monitoring endpoints
+  - name: Documentation
+    description: API and educational documentation endpoints
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health check endpoint
+      description: Returns the current health status of the API server with timestamp
+      responses:
+        '200':
+          description: Server is healthy and operational
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: '2024-01-15T10:30:00.000Z'
+
+  /message:
+    post:
+      tags:
+        - Messages
+      summary: Create a new message
+      description: |
+        Creates a new message entry in the database with a unique sender name.
+
+        **Validation Rules:**
+        - Name must be unique (1-255 characters, trimmed)
+        - Message must be non-empty after trimming
+        - Priority must be 1, 2, or 3
+
+        **Returns:**
+        - Formatted message string: `{priority} - [name] says: message`
+        - Generated message ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+            examples:
+              highPriority:
+                summary: High priority message
+                value:
+                  name: John Doe
+                  message: This is urgent!
+                  priority: 1
+              normalMessage:
+                summary: Normal priority message
+                value:
+                  name: Alice Smith
+                  message: Hello World
+                  priority: 2
+      responses:
+        '201':
+          description: Message created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entry:
+                            type: string
+                            description: Formatted message string
+                            example: '{1} - [John Doe] says: This is urgent!'
+                          messageId:
+                            type: integer
+                            description: Auto-generated database ID
+                            example: 123
+                          name:
+                            type: string
+                            example: John Doe
+                          message:
+                            type: string
+                            example: This is urgent!
+                          priority:
+                            type: integer
+                            example: 1
+        '400':
+          description: Invalid input or name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                nameExists:
+                  summary: Duplicate name error
+                  value:
+                    success: false
+                    message: Name already exists - please choose a different name
+                    code: MSG_NAME_EXISTS
+                    timestamp: '2024-01-15T10:30:00.000Z'
+                invalidPriority:
+                  summary: Invalid priority value
+                  value:
+                    success: false
+                    message: Priority must be 1, 2, or 3
+                    code: MSG_INVALID_PRIORITY
+                    timestamp: '2024-01-15T10:30:00.000Z'
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Messages
+      summary: Get messages by priority
+      description: |
+        Retrieves all messages with a specific priority level, ordered by creation date (newest first).
+
+        **Priority Levels:**
+        - 1 = High priority
+        - 2 = Medium priority
+        - 3 = Low priority
+      parameters:
+        - name: priority
+          in: query
+          required: true
+          description: Priority level to filter by (1, 2, or 3)
+          schema:
+            type: integer
+            enum: [1, 2, 3]
+            example: 1
+      responses:
+        '200':
+          description: Messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entries:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MessageEntry'
+                          count:
+                            type: integer
+                            description: Number of messages found
+                            example: 2
+                          priority:
+                            type: integer
+                            description: Priority level queried
+                            example: 1
+        '400':
+          description: Invalid priority parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No messages found with specified priority
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags:
+        - Messages
+      summary: Update an existing message
+      description: |
+        Updates the message content for an existing entry identified by sender name.
+
+        **Note:** Priority cannot be changed through this endpoint.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - message
+              properties:
+                name:
+                  type: string
+                  description: Name of the sender to update (must exist)
+                  example: John Doe
+                message:
+                  type: string
+                  description: New message content
+                  example: Updated message content
+      responses:
+        '200':
+          description: Message updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entry:
+                            type: string
+                            example: '{2} - [John Doe] says: Updated message content'
+                          name:
+                            type: string
+                            example: John Doe
+                          message:
+                            type: string
+                            example: Updated message content
+                          priority:
+                            type: integer
+                            example: 2
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Message with specified name not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Messages
+      summary: Delete messages by priority
+      description: Deletes all messages with a specific priority level from the database
+      parameters:
+        - name: priority
+          in: query
+          required: true
+          description: Priority level of messages to delete (1, 2, or 3)
+          schema:
+            type: integer
+            enum: [1, 2, 3]
+            example: 1
+      responses:
+        '200':
+          description: Messages deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deletedCount:
+                            type: integer
+                            description: Number of messages deleted
+                            example: 3
+                          priority:
+                            type: integer
+                            example: 1
+        '400':
+          description: Invalid priority parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No messages found with specified priority
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /message/all:
+    get:
+      tags:
+        - Messages
+      summary: Get all messages
+      description: |
+        Retrieves all messages from the database regardless of priority level.
+        Returns messages ordered by creation date (newest first).
+      responses:
+        '200':
+          description: All messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          entries:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/MessageEntry'
+                          count:
+                            type: integer
+                            description: Total number of messages
+                            example: 15
+
+  /message/{name}:
+    get:
+      tags:
+        - Messages
+      summary: Get message by sender name
+      description: Retrieves a specific message by the sender's unique name
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Name of the message sender to look up
+          schema:
+            type: string
+            example: John Doe
+      responses:
+        '200':
+          description: Message found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/MessageEntry'
+        '404':
+          description: Message with specified name not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Messages
+      summary: Delete message by sender name
+      description: Deletes a specific message identified by the sender's unique name
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Name of the message sender to delete
+          schema:
+            type: string
+            example: John Doe
+      responses:
+        '200':
+          description: Message deleted successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          deletedName:
+                            type: string
+                            description: Name of the deleted message sender
+                            example: John Doe
+        '404':
+          description: Message with specified name not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /doc:
+    get:
+      tags:
+        - Documentation
+      summary: Documentation index page
+      description: Interactive HTML documentation index with links to all educational resources
+      responses:
+        '200':
+          description: Documentation index page
+          content:
+            text/html:
+              schema:
+                type: string
+
+  /doc/{filename}:
+    get:
+      tags:
+        - Documentation
+      summary: View rendered documentation file
+      description: Returns markdown documentation rendered as HTML with syntax highlighting
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          description: Name of the markdown file to view
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9_-]+\.md$'
+            example: http-fundamentals.md
+      responses:
+        '200':
+          description: Rendered documentation
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          description: Documentation file not found
+
+components:
+  schemas:
+    MessageRequest:
+      type: object
+      required:
+        - name
+        - message
+        - priority
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          description: Unique identifier for message sender
+          example: John Doe
+        message:
+          type: string
+          minLength: 1
+          description: Content of the message (non-empty after trimming)
+          example: Hello, World!
+        priority:
+          type: integer
+          enum: [1, 2, 3]
+          description: Priority level (1=high, 2=medium, 3=low)
+          example: 1
+
+    MessageEntry:
+      type: object
+      properties:
+        name:
+          type: string
+          example: John Doe
+        message:
+          type: string
+          example: Hello, World!
+        priority:
+          type: integer
+          example: 1
+        formatted:
+          type: string
+          description: Pre-formatted display string
+          example: '{1} - [John Doe] says: Hello, World!'
+
+    SuccessResponse:
+      type: object
+      required:
+        - success
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Response payload (structure varies by endpoint)
+        message:
+          type: string
+          description: Optional success message
+          example: Message created successfully
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - message
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Human-readable error message
+          example: Name already exists - please choose a different name
+        code:
+          type: string
+          description: Machine-readable error code
+          example: MSG_NAME_EXISTS
+        timestamp:
+          type: string
+          format: date-time
+          example: '2024-01-15T10:30:00.000Z'
