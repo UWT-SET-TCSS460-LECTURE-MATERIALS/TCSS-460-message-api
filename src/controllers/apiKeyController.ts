@@ -74,7 +74,7 @@ export const generateApiKeyController = async (request: Request, response: Respo
             api_key: keyData.api_key,
             name: keyData.name,
             created_at: keyData.created_at.toISOString(),
-            usage: `Include this key in the X-API-Key header for protected endpoints: curl -H "X-API-Key: ${keyData.api_key}" http://localhost:4000/protected/message/all`
+            usage: `Include this key in the X-API-Key header for protected endpoints: curl -H "X-API-Key: ${keyData.api_key}" http://localhost:8000/protected/message/all`
         };
 
         sendSuccess(

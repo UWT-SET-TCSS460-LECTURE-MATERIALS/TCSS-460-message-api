@@ -20,20 +20,20 @@ export const messageRoutes = Router();
 // POST /message - Create a new message entry
 messageRoutes.post('/', validateCreateMessage, createMessage);
 
-// GET /message?priority=N - Get messages by priority
-messageRoutes.get('/', validatePriorityQuery, getMessagesByPriority);
-
 // PATCH /message - Update an existing message
 messageRoutes.patch('/', validateUpdateMessage, updateMessage);
 
-// DELETE /message?priority=N - Delete messages by priority
-messageRoutes.delete('/', validatePriorityQuery, deleteMessagesByPriority);
-
-// GET /message/all - Get all messages
+// GET /message/all - Get all messages (must come before /:name)
 messageRoutes.get('/all', getAllMessages);
 
-// GET /message/:name - Get message by name
+// GET /message/:name - Get message by name (must come before query param route)
 messageRoutes.get('/:name', validateNameParam, getMessageByName);
 
-// DELETE /message/:name - Delete message by name
+// DELETE /message/:name - Delete message by name (must come before query param route)
 messageRoutes.delete('/:name', validateNameParam, deleteMessageByName);
+
+// GET /message?priority=N - Get messages by priority (must come after path param routes)
+messageRoutes.get('/', validatePriorityQuery, getMessagesByPriority);
+
+// DELETE /message?priority=N - Delete messages by priority (must come after path param routes)
+messageRoutes.delete('/', validatePriorityQuery, deleteMessagesByPriority);
