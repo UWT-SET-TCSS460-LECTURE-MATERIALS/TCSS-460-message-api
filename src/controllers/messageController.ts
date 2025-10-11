@@ -345,7 +345,9 @@ export const getMessageByName = async (request: Request, response: Response): Pr
         sendSuccess(
             response,
             {
-                entry: messageObject,
+                name: messageObject.name,
+                message: messageObject.message,
+                priority: messageObject.priority,
                 formatted: formatMessage(messageObject)
             },
             `Retrieved message for '${name}'`

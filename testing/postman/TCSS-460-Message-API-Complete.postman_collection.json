@@ -1,0 +1,1510 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-4789-a0b1-c2d3e4f56789",
+		"name": "TCSS-460 Message API - Comprehensive Test Suite",
+		"description": "Complete Postman collection for testing all endpoints of the TCSS-460 Message API, including public routes, protected routes, authentication, and documentation endpoints.\n\nGenerated from: swagger.yaml\nBase URL: http://localhost:8000\n\n## Collection Structure\n\n1. **Health Check** - Server health monitoring\n2. **Authentication** - API key generation and form\n3. **Public Messages** - CRUD operations without authentication\n4. **Protected Messages** - CRUD operations requiring API key\n5. **Documentation** - Educational documentation endpoints\n\n## Variables\n\n- `baseUrl`: http://localhost:8000\n- `apiKey`: Set automatically after generating API key in Authentication folder\n- `testName`: Dynamic name for test messages\n- `testMessage`: Sample message content\n\n## Testing Workflow\n\n1. Run \"Health Check\" to verify server is running\n2. Generate API key using \"POST Generate API Key\" (saves key to collection variable)\n3. Test public message endpoints (no authentication required)\n4. Test protected message endpoints (uses saved API key)\n5. Explore documentation endpoints\n\n## Educational Focus\n\nThis collection demonstrates:\n- RESTful API design patterns\n- Stateful authentication with API keys\n- Request validation and error handling\n- CRUD operations with PostgreSQL\n- HTTP method semantics (GET, POST, PATCH, DELETE)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Health Check",
+			"item": [
+				{
+					"name": "GET Health Check",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has status and timestamp\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData).to.have.property('timestamp');",
+									"    pm.expect(jsonData.status).to.eql('OK');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Returns the current health status of the API server with timestamp.\n\n**Expected Response:**\n```json\n{\n  \"status\": \"OK\",\n  \"timestamp\": \"2024-01-15T10:30:00.000Z\"\n}\n```"
+					},
+					"response": []
+				}
+			],
+			"description": "System health and status monitoring endpoints"
+		},
+		{
+			"name": "2. Authentication",
+			"item": [
+				{
+					"name": "GET API Key Form (HTML)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api-key",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api-key"
+							]
+						},
+						"description": "Returns an HTML page with a form to generate a new API key.\n\n**Response Type:** text/html\n\nThis endpoint demonstrates how APIs can serve both JSON and HTML content."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Generate API Key",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains API key\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('api_key');",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('created_at');",
+									"    pm.expect(jsonData.data).to.have.property('usage');",
+									"    ",
+									"    // Save API key to collection variable for use in protected endpoints",
+									"    pm.collectionVariables.set('apiKey', jsonData.data.api_key);",
+									"    console.log('API Key saved to collection variable:', jsonData.data.api_key);",
+									"});",
+									"",
+									"pm.test(\"API key is valid UUID v4 format\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    var uuidV4Pattern = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;",
+									"    pm.expect(jsonData.data.api_key).to.match(uuidV4Pattern);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{$randomFullName}}\",\n  \"email\": \"{{$randomEmail}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api-key",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api-key"
+							]
+						},
+						"description": "Generates a new API key for authentication with protected endpoints.\n\n**Process:**\n1. Validates name and email\n2. Generates a cryptographically secure UUID v4 key\n3. Stores key in database with metadata\n4. Returns key (shown only once - must be saved!)\n\n**Request Body:**\n- `name` (required): 1-255 characters\n- `email` (required): valid email format\n\n**Note:** The generated API key is automatically saved to the collection variable `apiKey` for use in protected endpoint requests."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Generate API Key - Missing Name (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error response structure is correct\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"    pm.expect(jsonData).to.have.property('message');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"test@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api-key",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api-key"
+							]
+						},
+						"description": "Test validation error when name is missing from request."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Generate API Key - Invalid Email (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error response for invalid email\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"not-a-valid-email\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api-key",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api-key"
+							]
+						},
+						"description": "Test validation error when email format is invalid."
+					},
+					"response": []
+				}
+			],
+			"description": "API key generation and management endpoints.\n\n**Authentication Flow:**\n1. Generate API key using POST /api-key\n2. Save the returned key (shown only once)\n3. Include key in X-API-Key header for protected endpoints"
+		},
+		{
+			"name": "3. Public Messages (No Auth Required)",
+			"item": [
+				{
+					"name": "POST Create Message - High Priority",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Response contains message data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('entry');",
+									"    pm.expect(jsonData.data).to.have.property('messageId');",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('message');",
+									"    pm.expect(jsonData.data).to.have.property('priority');",
+									"    pm.expect(jsonData.data.priority).to.eql(1);",
+									"    ",
+									"    // Save test name for later tests",
+									"    pm.collectionVariables.set('testName1', jsonData.data.name);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Generate unique name for this test run",
+									"pm.collectionVariables.set('uniqueName1', 'HighPriority_' + Date.now());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{uniqueName1}}\",\n  \"message\": \"This is urgent!\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Creates a new message with priority 1 (high).\n\n**Validation Rules:**\n- Name must be unique (1-255 characters)\n- Message must be non-empty\n- Priority must be 1, 2, or 3\n\n**Returns:**\n- Formatted message: `{priority} - [name] says: message`\n- Generated message ID"
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Message - Medium Priority",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set('uniqueName2', 'MediumPriority_' + Date.now());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Priority is 2\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.priority).to.eql(2);",
+									"    pm.collectionVariables.set('testName2', jsonData.data.name);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{uniqueName2}}\",\n  \"message\": \"Hello World\",\n  \"priority\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Creates a new message with priority 2 (medium)."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Message - Low Priority",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set('uniqueName3', 'LowPriority_' + Date.now());"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Priority is 3\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.priority).to.eql(3);",
+									"    pm.collectionVariables.set('testName3', jsonData.data.name);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{uniqueName3}}\",\n  \"message\": \"Low priority message\",\n  \"priority\": 3\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Creates a new message with priority 3 (low)."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Message - Duplicate Name (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error indicates duplicate name\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"    pm.expect(jsonData).to.have.property('errorCode');",
+									"    pm.expect(jsonData.errorCode).to.eql('MSG_NAME_EXISTS');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{testName1}}\",\n  \"message\": \"Trying to duplicate\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Tests error handling when attempting to create a message with a duplicate name."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Message - Invalid Priority (400)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 400\", function () {",
+									"    pm.response.to.have.status(400);",
+									"});",
+									"",
+									"pm.test(\"Error indicates invalid priority\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Invalid Priority Test\",\n  \"message\": \"Test message\",\n  \"priority\": 5\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Tests validation error when priority is not 1, 2, or 3."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Messages by Priority - Priority 1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains priority 1 messages\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('entries');",
+									"    pm.expect(jsonData.data).to.have.property('count');",
+									"    pm.expect(jsonData.data).to.have.property('priority');",
+									"    pm.expect(jsonData.data.priority).to.eql(1);",
+									"    ",
+									"    // All entries should have priority 1",
+									"    jsonData.data.entries.forEach(entry => {",
+									"        pm.expect(entry.priority).to.eql(1);",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message?priority=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Retrieves all messages with priority 1 (high), ordered by creation date (newest first)."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Messages by Priority - Priority 2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains priority 2 messages\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.priority).to.eql(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message?priority=2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Retrieves all messages with priority 2 (medium)."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Messages by Priority - Priority 3",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains priority 3 messages\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data.priority).to.eql(3);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message?priority=3",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "3"
+								}
+							]
+						},
+						"description": "Retrieves all messages with priority 3 (low)."
+					},
+					"response": []
+				},
+				{
+					"name": "GET All Messages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains all messages with breakdown\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('entries');",
+									"    pm.expect(jsonData.data).to.have.property('totalCount');",
+									"    pm.expect(jsonData.data).to.have.property('priorityBreakdown');",
+									"    pm.expect(jsonData.data.priorityBreakdown).to.have.property('priority1');",
+									"    pm.expect(jsonData.data.priorityBreakdown).to.have.property('priority2');",
+									"    pm.expect(jsonData.data.priorityBreakdown).to.have.property('priority3');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message",
+								"all"
+							]
+						},
+						"description": "Retrieves all messages from the database regardless of priority level.\n\nReturns:\n- `entries`: Array of all messages\n- `totalCount`: Total number of messages\n- `priorityBreakdown`: Count of messages per priority level"
+					},
+					"response": []
+				},
+				{
+					"name": "GET Message by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains message data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('message');",
+									"    pm.expect(jsonData.data).to.have.property('priority');",
+									"    pm.expect(jsonData.data).to.have.property('formatted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message/{{testName1}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message",
+								"{{testName1}}"
+							]
+						},
+						"description": "Retrieves a specific message by the sender's unique name."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Message by Name - Not Found (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Error response structure\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message/NonExistentName_12345",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message",
+								"NonExistentName_12345"
+							]
+						},
+						"description": "Tests 404 error when requesting a message with a name that doesn't exist."
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH Update Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Message updated successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('entry');",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('message');",
+									"    pm.expect(jsonData.data.message).to.include('Updated');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{testName2}}\",\n  \"message\": \"Updated message content\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Updates the message content for an existing entry.\n\n**Note:** Priority cannot be changed through this endpoint."
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH Update Message - Not Found (404)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 404\", function () {",
+									"    pm.response.to.have.status(404);",
+									"});",
+									"",
+									"pm.test(\"Error response\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"NonExistentName_12345\",\n  \"message\": \"Updated message\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							]
+						},
+						"description": "Tests 404 error when attempting to update a non-existent message."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Message by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Message deleted successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('deletedName');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message/{{testName3}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message",
+								"{{testName3}}"
+							]
+						},
+						"description": "Deletes a specific message identified by the sender's unique name."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Messages by Priority",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Messages deleted successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('deletedCount');",
+									"    pm.expect(jsonData.data).to.have.property('priority');",
+									"    pm.expect(jsonData.data.priority).to.eql(2);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/message?priority=2",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "2"
+								}
+							]
+						},
+						"description": "Deletes all messages with priority 2 from the database."
+					},
+					"response": []
+				}
+			],
+			"description": "Public message CRUD operations - no authentication required.\n\n**Available Operations:**\n- Create messages (POST)\n- Get messages by priority (GET with query param)\n- Get all messages (GET /all)\n- Get message by name (GET /:name)\n- Update message (PATCH)\n- Delete by priority (DELETE with query param)\n- Delete by name (DELETE /:name)"
+		},
+		{
+			"name": "4. Protected Messages (Requires API Key)",
+			"item": [
+				{
+					"name": "POST Create Protected Message - Success",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Protected message created\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('messageId');",
+									"    pm.collectionVariables.set('protectedName1', jsonData.data.name);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set('protectedUniqueName1', 'Protected_' + Date.now());"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{protectedUniqueName1}}\",\n  \"message\": \"This is a protected message!\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/protected/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message"
+							]
+						},
+						"description": "Creates a new message with API key authentication.\n\n**Requires:** X-API-Key header\n\n**Educational Note:** Same functionality as POST /message, but demonstrates protected endpoint pattern."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Protected Message - No API Key (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Error indicates missing API key\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"    pm.expect(jsonData.errorCode).to.eql('AUTH_KEY_REQUIRED');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Without Key\",\n  \"message\": \"Should fail\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/protected/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message"
+							]
+						},
+						"description": "Tests 401 error when API key is missing from request."
+					},
+					"response": []
+				},
+				{
+					"name": "POST Create Protected Message - Invalid API Key (401)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 401\", function () {",
+									"    pm.response.to.have.status(401);",
+									"});",
+									"",
+									"pm.test(\"Error indicates invalid API key\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.false;",
+									"    pm.expect(jsonData.errorCode).to.eql('AUTH_KEY_INVALID');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "invalid-key-12345",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Test Invalid Key\",\n  \"message\": \"Should fail\",\n  \"priority\": 1\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/protected/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message"
+							]
+						},
+						"description": "Tests 401 error when API key is invalid."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Protected Messages by Priority",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains messages\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('entries');",
+									"    pm.expect(jsonData.data).to.have.property('count');",
+									"    pm.expect(jsonData.data).to.have.property('priority');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/protected/message?priority=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Retrieves messages by priority with API key authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Protected All Messages",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains all messages with breakdown\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('entries');",
+									"    pm.expect(jsonData.data).to.have.property('totalCount');",
+									"    pm.expect(jsonData.data).to.have.property('priorityBreakdown');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/protected/message/all",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message",
+								"all"
+							]
+						},
+						"description": "Retrieves all messages with API key authentication.\n\nReturns messages ordered by creation date (newest first)."
+					},
+					"response": []
+				},
+				{
+					"name": "GET Protected Message by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response contains message\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('name');",
+									"    pm.expect(jsonData.data).to.have.property('message');",
+									"    pm.expect(jsonData.data).to.have.property('priority');",
+									"    pm.expect(jsonData.data).to.have.property('formatted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/protected/message/{{protectedName1}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message",
+								"{{protectedName1}}"
+							]
+						},
+						"description": "Retrieves a specific message by name with API key authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "PATCH Update Protected Message",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Message updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data.message).to.include('Updated');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"{{protectedName1}}\",\n  \"message\": \"Updated protected message\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/protected/message",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message"
+							]
+						},
+						"description": "Updates a message with API key authentication.\n\n**Note:** Priority cannot be changed."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Protected Message by Name",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Message deleted\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('deletedName');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/protected/message/{{protectedName1}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message",
+								"{{protectedName1}}"
+							]
+						},
+						"description": "Deletes a message by name with API key authentication."
+					},
+					"response": []
+				},
+				{
+					"name": "DELETE Protected Messages by Priority",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Messages deleted\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('deletedCount');",
+									"    pm.expect(jsonData.data).to.have.property('priority');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/protected/message?priority=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"protected",
+								"message"
+							],
+							"query": [
+								{
+									"key": "priority",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Deletes all messages with specified priority using API key authentication."
+					},
+					"response": []
+				}
+			],
+			"description": "Protected message endpoints requiring API key authentication.\n\n**All requests must include:** `X-API-Key` header\n\n**401 Errors:**\n- `AUTH_KEY_REQUIRED`: Missing X-API-Key header\n- `AUTH_KEY_INVALID`: Invalid or revoked API key\n\n**Educational Note:** Compare these protected endpoints with the public message endpoints to understand authentication requirements."
+		},
+		{
+			"name": "5. Documentation",
+			"item": [
+				{
+					"name": "GET Documentation Index",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/doc",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"doc"
+							]
+						},
+						"description": "Returns an interactive HTML documentation index with links to all educational resources.\n\n**Response Type:** text/html"
+					},
+					"response": []
+				},
+				{
+					"name": "GET Documentation File (Example)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/doc/http-fundamentals.md",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"doc",
+								"http-fundamentals.md"
+							]
+						},
+						"description": "Returns a specific markdown documentation file rendered as HTML with syntax highlighting.\n\n**Response Type:** text/html\n\n**Filename Pattern:** Must match `^[a-zA-Z0-9_-]+\\.md$`"
+					},
+					"response": []
+				}
+			],
+			"description": "Educational documentation endpoints.\n\n**Available Documentation:**\n- HTTP fundamentals\n- RESTful API design\n- Database operations\n- Authentication patterns\n- And more..."
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "apiKey",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testName1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testName2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "testName3",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "uniqueName1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "uniqueName2",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "uniqueName3",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "protectedName1",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "protectedUniqueName1",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

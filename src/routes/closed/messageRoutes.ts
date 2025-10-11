@@ -43,13 +43,6 @@ protectedMessageRoutes.use(apiKeyAuth);
 protectedMessageRoutes.post('/', validateCreateMessage, createMessage);
 
 /**
- * GET /protected/message?priority=N - Get messages by priority (protected)
- * Requires: X-API-Key header
- * Validation: validatePriorityQuery
- */
-protectedMessageRoutes.get('/', validatePriorityQuery, getMessagesByPriority);
-
-/**
  * PATCH /protected/message - Update an existing message (protected)
  * Requires: X-API-Key header
  * Validation: validateUpdateMessage
@@ -57,15 +50,9 @@ protectedMessageRoutes.get('/', validatePriorityQuery, getMessagesByPriority);
 protectedMessageRoutes.patch('/', validateUpdateMessage, updateMessage);
 
 /**
- * DELETE /protected/message?priority=N - Delete messages by priority (protected)
- * Requires: X-API-Key header
- * Validation: validatePriorityQuery
- */
-protectedMessageRoutes.delete('/', validatePriorityQuery, deleteMessagesByPriority);
-
-/**
  * GET /protected/message/all - Get all messages (protected)
  * Requires: X-API-Key header
+ * Note: Must come before /:name route to avoid conflicts
  */
 protectedMessageRoutes.get('/all', getAllMessages);
 
@@ -73,6 +60,7 @@ protectedMessageRoutes.get('/all', getAllMessages);
  * GET /protected/message/:name - Get message by name (protected)
  * Requires: X-API-Key header
  * Validation: validateNameParam
+ * Note: Must come before query param route to avoid conflicts
  */
 protectedMessageRoutes.get('/:name', validateNameParam, getMessageByName);
 
@@ -80,5 +68,22 @@ protectedMessageRoutes.get('/:name', validateNameParam, getMessageByName);
  * DELETE /protected/message/:name - Delete message by name (protected)
  * Requires: X-API-Key header
  * Validation: validateNameParam
+ * Note: Must come before query param route to avoid conflicts
  */
 protectedMessageRoutes.delete('/:name', validateNameParam, deleteMessageByName);
+
+/**
+ * GET /protected/message?priority=N - Get messages by priority (protected)
+ * Requires: X-API-Key header
+ * Validation: validatePriorityQuery
+ * Note: Must come after path param routes to avoid conflicts
+ */
+protectedMessageRoutes.get('/', validatePriorityQuery, getMessagesByPriority);
+
+/**
+ * DELETE /protected/message?priority=N - Delete messages by priority (protected)
+ * Requires: X-API-Key header
+ * Validation: validatePriorityQuery
+ * Note: Must come after path param routes to avoid conflicts
+ */
+protectedMessageRoutes.delete('/', validatePriorityQuery, deleteMessagesByPriority);

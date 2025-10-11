@@ -29,10 +29,8 @@ info:
     url: https://opensource.org/licenses/MIT
 
 servers:
-  - url: http://localhost:4000
+  - url: http://localhost:8000
     description: Development server
-  - url: http://localhost:5000
-    description: Alternative development port
 
 tags:
   - name: Messages
@@ -159,7 +157,7 @@ paths:
                       usage:
                         type: string
                         description: Instructions for using the API key
-                        example: 'Include this key in the X-API-Key header for protected endpoints: curl -H "X-API-Key: 550e8400-e29b-41d4-a716-446655440000" http://localhost:4000/protected/message/all'
+                        example: 'Include this key in the X-API-Key header for protected endpoints: curl -H "X-API-Key: 550e8400-e29b-41d4-a716-446655440000" http://localhost:8000/protected/message/all'
         '400':
           description: Validation failed
           content:
@@ -250,14 +248,14 @@ paths:
                   value:
                     success: false
                     message: Name already exists - please choose a different name
-                    code: MSG_NAME_EXISTS
+                    errorCode: MSG_NAME_EXISTS
                     timestamp: '2024-01-15T10:30:00.000Z'
                 invalidPriority:
                   summary: Invalid priority value
                   value:
                     success: false
                     message: Priority must be 1, 2, or 3
-                    code: MSG_INVALID_PRIORITY
+                    errorCode: MSG_INVALID_PRIORITY
                     timestamp: '2024-01-15T10:30:00.000Z'
         '500':
           description: Server error
@@ -460,10 +458,22 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/MessageEntry'
-                          count:
+                          totalCount:
                             type: integer
                             description: Total number of messages
                             example: 15
+                          priorityBreakdown:
+                            type: object
+                            properties:
+                              priority1:
+                                type: integer
+                                example: 5
+                              priority2:
+                                type: integer
+                                example: 6
+                              priority3:
+                                type: integer
+                                example: 4
 
   /message/{name}:
     get:
@@ -653,15 +663,13 @@ paths:
                   value:
                     success: false
                     message: API key required - visit /api-key to generate one
-                    code: AUTH_KEY_REQUIRED
-                    timestamp: '2024-01-15T10:30:00.000Z'
+                    errorCode: AUTH_KEY_REQUIRED
                 invalidKey:
                   summary: Invalid API key
                   value:
                     success: false
                     message: Invalid API key - please check your key or generate a new one at /api-key
-                    code: AUTH_KEY_INVALID
-                    timestamp: '2024-01-15T10:30:00.000Z'
+                    errorCode: AUTH_KEY_INVALID
         '500':
           description: Server error
           content:
@@ -878,7 +886,7 @@ paths:
         **Example with curl:**
         ```
         curl -H "X-API-Key: 550e8400-e29b-41d4-a716-446655440000" \
-             http://localhost:4000/protected/message/all
+             http://localhost:8000/protected/message/all
         ```
       security:
         - ApiKeyAuth: []
@@ -899,10 +907,22 @@ paths:
                             type: array
                             items:
                               $ref: '#/components/schemas/MessageEntry'
-                          count:
+                          totalCount:
                             type: integer
                             description: Total number of messages
                             example: 15
+                          priorityBreakdown:
+                            type: object
+                            properties:
+                              priority1:
+                                type: integer
+                                example: 5
+                              priority2:
+                                type: integer
+                                example: 6
+                              priority3:
+                                type: integer
+                                example: 4
         '401':
           description: Unauthorized - missing or invalid API key
           content:
@@ -1069,7 +1089,6 @@ components:
       required:
         - success
         - message
-        - timestamp
       properties:
         success:
           type: boolean
@@ -1078,7 +1097,7 @@ components:
           type: string
           description: Human-readable error message
           example: Name already exists - please choose a different name
-        code:
+        errorCode:
           type: string
           description: Machine-readable error code
           example: MSG_NAME_EXISTS
@@ -1104,7 +1123,7 @@ components:
         **Example:**
         ```
         curl -H "X-API-Key: 550e8400-e29b-41d4-a716-446655440000" \
-             http://localhost:4000/protected/message/all
+             http://localhost:8000/protected/message/all
         ```
 
         **Educational Note:**
