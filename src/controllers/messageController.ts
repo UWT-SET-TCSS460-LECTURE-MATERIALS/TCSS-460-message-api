@@ -66,11 +66,10 @@ export const createMessage = async (request: Request, response: Response): Promi
         sendSuccess(
             response,
             {
-                entry: formatMessage(messageObject),
-                messageId: result.rows[0].id,
                 name: messageObject.name,
                 message: messageObject.message,
-                priority: messageObject.priority
+                priority: messageObject.priority,
+                formatted: formatMessage(messageObject)
             },
             "Message created successfully",
             201
@@ -177,12 +176,10 @@ export const updateMessage = async (request: Request, response: Response): Promi
         sendSuccess(
             response,
             {
-                entry: `Updated: ${formatMessage(messageObject)}`,
-                messageId: result.rows[0].id,
                 name: messageObject.name,
                 message: messageObject.message,
                 priority: messageObject.priority,
-                updatedAt: result.rows[0].updated_at
+                formatted: formatMessage(messageObject)
             },
             "Message updated successfully"
         );
@@ -227,22 +224,25 @@ export const deleteMessagesByPriority = async (request: Request, response: Respo
         // Delete the messages
         await pool.query('DELETE FROM messages WHERE priority = $1', [priority]);
 
-        const deletedEntries = messagesToDelete.rows.map((row: MessageRecord) =>
-            formatMessage({
+        const deleted: MessageEntry[] = messagesToDelete.rows.map((row: MessageRecord) => ({
+            name: row.name,
+            message: row.message,
+            priority: row.priority,
+            formatted: formatMessage({
                 name: row.name,
                 message: row.message,
                 priority: row.priority
             })
-        );
+        }));
 
         sendSuccess(
             response,
             {
-                entries: deletedEntries,
-                deletedCount: deletedEntries.length,
+                deleted,
+                deletedCount: deleted.length,
                 priority
             },
-            `Successfully deleted ${deletedEntries.length} message(s) with priority ${priority}`
+            `Successfully deleted ${deleted.length} message(s) with priority ${priority}`
         );
 
     } catch (error) {
@@ -393,22 +393,20 @@ export const deleteMessageByName = async (request: Request, response: Response):
         await pool.query('DELETE FROM messages WHERE name = $1', [name]);
 
         const deletedMessage = messageToDelete.rows[0];
-        const deletedEntry = formatMessage({
+        const deleted: MessageEntry = {
             name: deletedMessage.name,
             message: deletedMessage.message,
-            priority: deletedMessage.priority
-        });
+            priority: deletedMessage.priority,
+            formatted: formatMessage({
+                name: deletedMessage.name,
+                message: deletedMessage.message,
+                priority: deletedMessage.priority
+            })
+        };
 
         sendSuccess(
             response,
-            {
-                entry: `Deleted: ${deletedEntry}`,
-                deletedMessage: {
-                    name: deletedMessage.name,
-                    message: deletedMessage.message,
-                    priority: deletedMessage.priority
-                }
-            },
+            { deleted },
             `Successfully deleted message for '${name}'`
         );
 

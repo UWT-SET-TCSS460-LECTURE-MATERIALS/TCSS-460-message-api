@@ -217,25 +217,7 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        properties:
-                          entry:
-                            type: string
-                            description: Formatted message string
-                            example: '{1} - [John Doe] says: This is urgent!'
-                          messageId:
-                            type: integer
-                            description: Auto-generated database ID
-                            example: 123
-                          name:
-                            type: string
-                            example: John Doe
-                          message:
-                            type: string
-                            example: This is urgent!
-                          priority:
-                            type: integer
-                            example: 1
+                        $ref: '#/components/schemas/MessageEntry'
         '400':
           description: Invalid input or name already exists
           content:
@@ -359,20 +341,7 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        properties:
-                          entry:
-                            type: string
-                            example: '{2} - [John Doe] says: Updated message content'
-                          name:
-                            type: string
-                            example: John Doe
-                          message:
-                            type: string
-                            example: Updated message content
-                          priority:
-                            type: integer
-                            example: 2
+                        $ref: '#/components/schemas/MessageEntry'
         '400':
           description: Invalid input
           content:
@@ -413,6 +382,11 @@ paths:
                       data:
                         type: object
                         properties:
+                          deleted:
+                            type: array
+                            description: Array of deleted message entries
+                            items:
+                              $ref: '#/components/schemas/MessageEntry'
                           deletedCount:
                             type: integer
                             description: Number of messages deleted
@@ -534,10 +508,8 @@ paths:
                       data:
                         type: object
                         properties:
-                          deletedName:
-                            type: string
-                            description: Name of the deleted message sender
-                            example: John Doe
+                          deleted:
+                            $ref: '#/components/schemas/MessageEntry'
         '404':
           description: Message with specified name not found
           content:
@@ -628,23 +600,7 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        properties:
-                          entry:
-                            type: string
-                            example: '{1} - [John Doe] says: This is a protected message!'
-                          messageId:
-                            type: integer
-                            example: 123
-                          name:
-                            type: string
-                            example: John Doe
-                          message:
-                            type: string
-                            example: This is a protected message!
-                          priority:
-                            type: integer
-                            example: 1
+                        $ref: '#/components/schemas/MessageEntry'
         '400':
           description: Invalid input or name already exists
           content:
@@ -782,20 +738,7 @@ paths:
                   - type: object
                     properties:
                       data:
-                        type: object
-                        properties:
-                          entry:
-                            type: string
-                            example: '{2} - [John Doe] says: Updated protected message'
-                          name:
-                            type: string
-                            example: John Doe
-                          message:
-                            type: string
-                            example: Updated protected message
-                          priority:
-                            type: integer
-                            example: 2
+                        $ref: '#/components/schemas/MessageEntry'
         '400':
           description: Invalid input
           content:
@@ -846,6 +789,11 @@ paths:
                       data:
                         type: object
                         properties:
+                          deleted:
+                            type: array
+                            description: Array of deleted message entries
+                            items:
+                              $ref: '#/components/schemas/MessageEntry'
                           deletedCount:
                             type: integer
                             description: Number of messages deleted
@@ -1003,10 +951,8 @@ paths:
                       data:
                         type: object
                         properties:
-                          deletedName:
-                            type: string
-                            description: Name of the deleted message sender
-                            example: John Doe
+                          deleted:
+                            $ref: '#/components/schemas/MessageEntry'
         '401':
           description: Unauthorized - missing or invalid API key
           content:

@@ -65,26 +65,43 @@ export interface MessageObject {
 
 /**
  * API response format for message entries with display formatting
- * Extends MessageObject with pre-formatted display string for client consumption
- * Used in GET endpoints to provide both raw data and formatted display text
+ *
+ * **Standard message representation for all API responses.**
+ * Extends MessageObject with pre-formatted display string for client consumption.
+ * This is the consistent format returned by all message endpoints.
+ *
+ * **Important:** Database IDs are intentionally excluded from API responses.
+ * The `name` field serves as the natural key for all CRUD operations.
  *
  * @interface MessageEntry
  * @augments MessageObject
  * @example
- * const entry: MessageEntry = {
- *   name: "Bob",
- *   message: "Hello API",
- *   priority: 1,
- *   formatted: "{1} - [Bob] says: Hello API"
- * };
- * @example
- * // Response from GET /message?priority=1
+ * // Single message response (POST, GET by name, PATCH)
  * {
  *   success: true,
  *   data: {
- *     entries: [entry1, entry2], // Array of MessageEntry
- *     count: 2,
+ *     name: "Bob",
+ *     message: "Hello API",
+ *     priority: 1,
+ *     formatted: "{1} - [Bob] says: Hello API"
+ *   }
+ * }
+ * @example
+ * // Collection response (GET by priority, GET all)
+ * {
+ *   success: true,
+ *   data: {
+ *     entries: [{name: "Bob", message: "Hello", priority: 1, formatted: "..."}],
+ *     count: 1,
  *     priority: 1
+ *   }
+ * }
+ * @example
+ * // Delete response
+ * {
+ *   success: true,
+ *   data: {
+ *     deleted: {name: "Bob", message: "Hello", priority: 1, formatted: "..."}
  *   }
  * }
  */
