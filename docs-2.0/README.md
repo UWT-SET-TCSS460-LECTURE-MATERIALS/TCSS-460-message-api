@@ -1,4 +1,4 @@
-# TCSS-460 Message API - Educational Documentation
+# <img src="/images/logo.svg" alt="TCSS 460 Message API" width="60" style="vertical-align: middle;"> TCSS-460 Message API - Educational Documentation
 
 Welcome to the comprehensive educational documentation for the TCSS-460 Message API project. This documentation is designed to help students understand fundamental web development, API design, and software engineering concepts through practical examples.
 
