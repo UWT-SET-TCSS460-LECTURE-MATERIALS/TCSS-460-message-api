@@ -83,19 +83,26 @@ A production-ready RESTful API for managing message entries with priority levels
    DB_NAME=message_db
    ```
 
-4. **Start the PostgreSQL database**
-   ```bash
-   npm run docker:up
-   ```
+4. **Start the application**
 
-5. **Run the development server**
+   **Option A: Start everything with one command (recommended)**
    ```bash
+   npm run start:full
+   ```
+   This starts Docker and the API server automatically.
+
+   **Option B: Start manually in separate steps**
+   ```bash
+   # Start PostgreSQL database
+   npm run docker:up
+
+   # Then start the development server
    npm run dev
    # or with nodemon for hot reload:
    npm run local
    ```
 
-6. **Access the API**
+5. **Access the API**
    - API: http://localhost:8000
    - Swagger UI: http://localhost:8000/api-docs
    - Documentation: http://localhost:8000/doc
@@ -104,6 +111,7 @@ A production-ready RESTful API for managing message entries with priority levels
 
 ```bash
 # Development
+npm run start:full   # Start Docker + API (one command startup)
 npm run dev          # Start development server
 npm run local        # Start with nodemon (hot reload)
 npm run build        # Compile TypeScript to JavaScript
