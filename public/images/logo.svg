@@ -1,4 +1,4 @@
-<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<svg viewBox="45 45 110 100" xmlns="http://www.w3.org/2000/svg">
   <!-- Chat bubble with tail on left -->
   <path d="M 50 55 Q 50 50 55 50 L 145 50 Q 150 50 150 55 L 150 120 Q 150 125 145 125 L 70 125 L 50 140 L 55 125 Q 50 125 50 120 Z"
         fill="#4b2e83" stroke="#32006e" stroke-width="3"/>
@@ -8,9 +8,9 @@
         fill="#ffffff" stroke="#b7a57a" stroke-width="4"/>
 
   <!-- Priority bars -->
-  <rect x="70" y="68" width="60" height="5" fill="#e74c3c" rx="2"/>
-  <rect x="70" y="76" width="60" height="5" fill="#f39c12" rx="2"/>
-  <rect x="70" y="84" width="60" height="5" fill="#3498db" rx="2"/>
+  <rect x="70" y="64" width="60" height="5" fill="#e74c3c" rx="2"/>
+  <rect x="70" y="72" width="60" height="5" fill="#f39c12" rx="2"/>
+  <rect x="70" y="80" width="60" height="5" fill="#3498db" rx="2"/>
 
   <!-- Course text -->
   <text x="100" y="105" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#4b2e83">TCSS 460</text>

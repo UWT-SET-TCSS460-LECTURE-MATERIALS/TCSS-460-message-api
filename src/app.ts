@@ -51,6 +51,9 @@ export const createApp = (): express.Application => {
     app.use(express.json({ limit: '10mb' }));
     app.use(express.urlencoded({ extended: true }));
 
+    // Serve static files from public directory
+    app.use(express.static(path.join(__dirname, '../public')));
+
     // API Documentation - Swagger UI
     const swaggerDocument = YAML.load(path.join(__dirname, '../docs/swagger.yaml'));
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
