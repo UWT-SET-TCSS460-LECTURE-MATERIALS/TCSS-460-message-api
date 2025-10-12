@@ -1,4 +1,4 @@
-# TCSS 460 Message API
+# <img src="public/images/logo.svg" alt="TCSS 460 Message API" width="60" style="vertical-align: middle;"> TCSS 460 Message API
 
 > **University of Washington Tacoma**
 >
