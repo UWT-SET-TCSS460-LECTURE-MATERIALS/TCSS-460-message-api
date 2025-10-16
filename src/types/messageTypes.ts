@@ -140,3 +140,140 @@ export interface MessageRecord extends MessageObject {
     /** Timestamp when record was last updated (set by database) */
     updated_at: Date;
 }
+
+/**
+ * Pagination parameters for page-based pagination
+ * Page-based pagination is user-friendly and commonly used in web UIs
+ *
+ * @interface PagePaginationParams
+ * @example
+ * const params: PagePaginationParams = {
+ *   page: 2,
+ *   limit: 10
+ * };
+ * // Returns items 11-20
+ */
+export interface PagePaginationParams {
+    /** Page number (1-indexed) - defaults to 1 */
+    page: number;
+    /** Maximum number of items per page - defaults to 10, max 100 */
+    limit: number;
+}
+
+/**
+ * Pagination parameters for offset-based pagination
+ * Offset-based pagination provides more flexibility for custom positioning
+ *
+ * @interface OffsetPaginationParams
+ * @example
+ * const params: OffsetPaginationParams = {
+ *   offset: 20,
+ *   limit: 10
+ * };
+ * // Returns items 21-30
+ */
+export interface OffsetPaginationParams {
+    /** Number of records to skip (0-indexed) - defaults to 0 */
+    offset: number;
+    /** Maximum number of items to return - defaults to 10, max 100 */
+    limit: number;
+}
+
+/**
+ * Metadata for page-based pagination responses
+ * Provides navigation information for paginated results
+ *
+ * @interface PagePaginationMeta
+ * @example
+ * const meta: PagePaginationMeta = {
+ *   page: 2,
+ *   limit: 10,
+ *   totalCount: 45,
+ *   totalPages: 5,
+ *   hasNext: true,
+ *   hasPrevious: true
+ * };
+ */
+export interface PagePaginationMeta {
+    /** Current page number (1-indexed) */
+    page: number;
+    /** Maximum number of items per page */
+    limit: number;
+    /** Total number of items across all pages */
+    totalCount: number;
+    /** Total number of pages available */
+    totalPages: number;
+    /** Whether there are more pages after the current page */
+    hasNext: boolean;
+    /** Whether there are pages before the current page */
+    hasPrevious: boolean;
+}
+
+/**
+ * Metadata for offset-based pagination responses
+ * Provides navigation information for offset-based paginated results
+ *
+ * @interface OffsetPaginationMeta
+ * @example
+ * const meta: OffsetPaginationMeta = {
+ *   offset: 20,
+ *   limit: 10,
+ *   totalCount: 45,
+ *   hasNext: true,
+ *   hasPrevious: true
+ * };
+ */
+export interface OffsetPaginationMeta {
+    /** Current offset value (0-indexed) */
+    offset: number;
+    /** Maximum number of items returned */
+    limit: number;
+    /** Total number of items available */
+    totalCount: number;
+    /** Whether there are more items after current offset */
+    hasNext: boolean;
+    /** Whether there are items before current offset */
+    hasPrevious: boolean;
+}
+
+/**
+ * Paginated response structure for message collections
+ * Contains both the data entries and pagination metadata
+ *
+ * @interface PaginatedMessageResponse
+ * @example
+ * // Page-based pagination response
+ * const response: PaginatedMessageResponse = {
+ *   entries: [
+ *     {name: "John", message: "Hello", priority: 1, formatted: "{1} - [John] says: Hello"}
+ *   ],
+ *   pagination: {
+ *     page: 1,
+ *     limit: 10,
+ *     totalCount: 25,
+ *     totalPages: 3,
+ *     hasNext: true,
+ *     hasPrevious: false
+ *   }
+ * };
+ * @example
+ * // Offset-based pagination response
+ * const response: PaginatedMessageResponse = {
+ *   entries: [
+ *     {name: "Alice", message: "Test", priority: 2, formatted: "{2} - [Alice] says: Test"}
+ *   ],
+ *   pagination: {
+ *     offset: 10,
+ *     limit: 10,
+ *     totalCount: 25,
+ *     hasNext: true,
+ *     hasPrevious: true
+ *   }
+ * };
+ */
+export interface PaginatedMessageResponse {
+    /** Array of message entries for the current page/offset */
+    entries: MessageEntry[];
+    /** Pagination metadata - structure varies based on pagination type used */
+    pagination: PagePaginationMeta | OffsetPaginationMeta;
+}
