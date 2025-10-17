@@ -20,13 +20,16 @@ import {
     deleteMessagesByPriority,
     getAllMessages,
     getMessageByName,
-    deleteMessageByName
+    deleteMessageByName,
+    getAllMessagesPaginated,
+    getMessagesByPriorityPaginated
 } from '@controllers/messageController';
 import {
     validateCreateMessage,
     validateUpdateMessage,
     validatePriorityQuery,
-    validateNameParam
+    validateNameParam,
+    validatePaginationParams
 } from '@middleware/messageValidation';
 import { apiKeyAuth } from '@middleware/apiKeyAuth';
 
@@ -50,11 +53,27 @@ protectedMessageRoutes.post('/', validateCreateMessage, createMessage);
 protectedMessageRoutes.patch('/', validateUpdateMessage, updateMessage);
 
 /**
+ * GET /protected/message/all/paginated - Get all messages with pagination (protected)
+ * Requires: X-API-Key header
+ * Validation: validatePaginationParams
+ * Note: Must come before /all route to avoid conflicts
+ */
+protectedMessageRoutes.get('/all/paginated', validatePaginationParams, getAllMessagesPaginated);
+
+/**
  * GET /protected/message/all - Get all messages (protected)
  * Requires: X-API-Key header
  * Note: Must come before /:name route to avoid conflicts
  */
 protectedMessageRoutes.get('/all', getAllMessages);
+
+/**
+ * GET /protected/message/paginated?priority=N - Get messages by priority with pagination (protected)
+ * Requires: X-API-Key header
+ * Validation: validatePriorityQuery, validatePaginationParams
+ * Note: Must come before /:name route to avoid conflicts
+ */
+protectedMessageRoutes.get('/paginated', validatePriorityQuery, validatePaginationParams, getMessagesByPriorityPaginated);
 
 /**
  * GET /protected/message/:name - Get message by name (protected)

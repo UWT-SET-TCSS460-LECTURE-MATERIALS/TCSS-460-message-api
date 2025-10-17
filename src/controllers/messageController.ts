@@ -6,7 +6,12 @@ import {
     MessageObject,
     MessageEntry,
     MessageRecord,
-    ErrorCodes
+    ErrorCodes,
+    PagePaginationParams,
+    OffsetPaginationParams,
+    PagePaginationMeta,
+    OffsetPaginationMeta,
+    PaginatedMessageResponse
 } from '@/types';
 
 /**
@@ -413,5 +418,276 @@ export const deleteMessageByName = async (request: Request, response: Response):
     } catch (error) {
         console.error('Error deleting message by name:', error);
         sendError(response, 500, "Server error occurred while deleting message - please contact support", ErrorCodes.SRVR_INTERNAL_ERROR);
+    }
+};
+
+/**
+ * Helper function: Retrieve paginated messages using page-based pagination
+ * Executes SQL query with LIMIT and calculated OFFSET based on page number
+ *
+ * @param page - Page number (1-indexed)
+ * @param limit - Maximum number of items per page
+ * @param priorityFilter - Optional priority filter (1-3), undefined for all messages
+ * @returns Promise resolving to paginated response with entries and metadata
+ * @throws Will throw error if database operation fails
+ * @example
+ * // Get page 2 with 10 items per page
+ * const result = await getMessagesWithPagePagination(2, 10);
+ * // Returns items 11-20
+ * @example
+ * // Get page 1 of priority 1 messages
+ * const result = await getMessagesWithPagePagination(1, 10, 1);
+ */
+const getMessagesWithPagePagination = async (
+    page: number,
+    limit: number,
+    priorityFilter?: number
+): Promise<PaginatedMessageResponse> => {
+    const pool = getPool();
+
+    // Calculate offset from page number (page 1 = offset 0, page 2 = offset 10, etc.)
+    const offset = (page - 1) * limit;
+
+    // Build query based on whether priority filter is provided
+    const baseQuery = priorityFilter !== undefined
+        ? 'SELECT name, message, priority FROM messages WHERE priority = $1'
+        : 'SELECT name, message, priority FROM messages';
+
+    const countQuery = priorityFilter !== undefined
+        ? 'SELECT COUNT(*) FROM messages WHERE priority = $1'
+        : 'SELECT COUNT(*) FROM messages';
+
+    const orderAndPagination = ' ORDER BY created_at DESC LIMIT $' +
+        (priorityFilter !== undefined ? '2' : '1') + ' OFFSET $' +
+        (priorityFilter !== undefined ? '3' : '2');
+
+    // Execute queries
+    const queryParams = priorityFilter !== undefined
+        ? [priorityFilter, limit, offset]
+        : [limit, offset];
+
+    const countParams = priorityFilter !== undefined ? [priorityFilter] : [];
+
+    const [dataResult, countResult] = await Promise.all([
+        pool.query(baseQuery + orderAndPagination, queryParams),
+        pool.query(countQuery, countParams)
+    ]);
+
+    const totalCount = parseInt(countResult.rows[0].count);
+    const totalPages = Math.ceil(totalCount / limit);
+
+    // Transform database rows to MessageEntry format
+    const entries: MessageEntry[] = dataResult.rows.map((row: MessageRecord) => ({
+        name: row.name,
+        message: row.message,
+        priority: row.priority,
+        formatted: formatMessage({
+            name: row.name,
+            message: row.message,
+            priority: row.priority
+        })
+    }));
+
+    // Build page-based pagination metadata
+    const pagination: PagePaginationMeta = {
+        page,
+        limit,
+        totalCount,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrevious: page > 1
+    };
+
+    return { entries, pagination };
+};
+
+/**
+ * Helper function: Retrieve paginated messages using offset-based pagination
+ * Executes SQL query with LIMIT and direct OFFSET value
+ *
+ * @param offset - Number of records to skip (0-indexed)
+ * @param limit - Maximum number of items to return
+ * @param priorityFilter - Optional priority filter (1-3), undefined for all messages
+ * @returns Promise resolving to paginated response with entries and metadata
+ * @throws Will throw error if database operation fails
+ * @example
+ * // Skip first 20 items, get next 10
+ * const result = await getMessagesWithOffsetPagination(20, 10);
+ * // Returns items 21-30
+ * @example
+ * // Get first 10 priority 2 messages
+ * const result = await getMessagesWithOffsetPagination(0, 10, 2);
+ */
+const getMessagesWithOffsetPagination = async (
+    offset: number,
+    limit: number,
+    priorityFilter?: number
+): Promise<PaginatedMessageResponse> => {
+    const pool = getPool();
+
+    // Build query based on whether priority filter is provided
+    const baseQuery = priorityFilter !== undefined
+        ? 'SELECT name, message, priority FROM messages WHERE priority = $1'
+        : 'SELECT name, message, priority FROM messages';
+
+    const countQuery = priorityFilter !== undefined
+        ? 'SELECT COUNT(*) FROM messages WHERE priority = $1'
+        : 'SELECT COUNT(*) FROM messages';
+
+    const orderAndPagination = ' ORDER BY created_at DESC LIMIT $' +
+        (priorityFilter !== undefined ? '2' : '1') + ' OFFSET $' +
+        (priorityFilter !== undefined ? '3' : '2');
+
+    // Execute queries
+    const queryParams = priorityFilter !== undefined
+        ? [priorityFilter, limit, offset]
+        : [limit, offset];
+
+    const countParams = priorityFilter !== undefined ? [priorityFilter] : [];
+
+    const [dataResult, countResult] = await Promise.all([
+        pool.query(baseQuery + orderAndPagination, queryParams),
+        pool.query(countQuery, countParams)
+    ]);
+
+    const totalCount = parseInt(countResult.rows[0].count);
+
+    // Transform database rows to MessageEntry format
+    const entries: MessageEntry[] = dataResult.rows.map((row: MessageRecord) => ({
+        name: row.name,
+        message: row.message,
+        priority: row.priority,
+        formatted: formatMessage({
+            name: row.name,
+            message: row.message,
+            priority: row.priority
+        })
+    }));
+
+    // Build offset-based pagination metadata
+    const pagination: OffsetPaginationMeta = {
+        offset,
+        limit,
+        totalCount,
+        hasNext: offset + limit < totalCount,
+        hasPrevious: offset > 0
+    };
+
+    return { entries, pagination };
+};
+
+/**
+ * Get all messages with pagination support
+ * Supports both page-based and offset-based pagination
+ * Validation handled by validatePaginationParams middleware
+ *
+ * @param request - Express request with pagination query parameters
+ * @param response - Express response object for sending results
+ * @returns Promise<void>
+ * @throws Will send 500 error if database operation fails
+ * @example
+ * GET /message/all/paginated?page=2&limit=10
+ * Success Response: {
+ *   success: true,
+ *   data: {
+ *     entries: [...],
+ *     pagination: { page: 2, limit: 10, totalCount: 45, totalPages: 5, hasNext: true, hasPrevious: true }
+ *   }
+ * }
+ * @example
+ * GET /message/all/paginated?offset=20&limit=10
+ * Success Response: {
+ *   success: true,
+ *   data: {
+ *     entries: [...],
+ *     pagination: { offset: 20, limit: 10, totalCount: 45, hasNext: true, hasPrevious: true }
+ *   }
+ * }
+ */
+export const getAllMessagesPaginated = async (request: Request, response: Response): Promise<void> => {
+    try {
+        const { page, offset, limit } = request.query;
+
+        // Set defaults
+        const limitValue = limit ? parseInt(limit as string) : 10;
+
+        let result: PaginatedMessageResponse;
+        let message: string;
+
+        if (page !== undefined) {
+            // Page-based pagination
+            const pageValue = parseInt(page as string);
+            result = await getMessagesWithPagePagination(pageValue, limitValue);
+            message = `Retrieved page ${pageValue} of messages (${limitValue} per page)`;
+        } else {
+            // Offset-based pagination (offset defaults to 0 if not provided)
+            const offsetValue = offset ? parseInt(offset as string) : 0;
+            result = await getMessagesWithOffsetPagination(offsetValue, limitValue);
+            message = `Retrieved ${result.entries.length} message(s) starting at offset ${offsetValue}`;
+        }
+
+        sendSuccess(response, result, message);
+
+    } catch (error) {
+        console.error('Error getting paginated messages:', error);
+        sendError(response, 500, "Server error occurred while retrieving paginated messages - please contact support", ErrorCodes.SRVR_INTERNAL_ERROR);
+    }
+};
+
+/**
+ * Get messages by priority with pagination support
+ * Supports both page-based and offset-based pagination
+ * Validation handled by validatePriorityQuery and validatePaginationParams middleware
+ *
+ * @param request - Express request with priority and pagination query parameters
+ * @param response - Express response object for sending results
+ * @returns Promise<void>
+ * @throws Will send 404 error if no messages found with specified priority
+ * @throws Will send 500 error if database operation fails
+ * @example
+ * GET /message/paginated?priority=1&page=2&limit=10
+ * Success Response: {
+ *   success: true,
+ *   data: {
+ *     entries: [...],
+ *     pagination: { page: 2, limit: 10, totalCount: 25, totalPages: 3, hasNext: true, hasPrevious: true },
+ *     priority: 1
+ *   }
+ * }
+ */
+export const getMessagesByPriorityPaginated = async (request: Request, response: Response): Promise<void> => {
+    try {
+        const { priority, page, offset, limit } = request.query;
+        const priorityValue = parseInt(priority as string);
+
+        // Set defaults
+        const limitValue = limit ? parseInt(limit as string) : 10;
+
+        let result: PaginatedMessageResponse;
+        let message: string;
+
+        if (page !== undefined) {
+            // Page-based pagination
+            const pageValue = parseInt(page as string);
+            result = await getMessagesWithPagePagination(pageValue, limitValue, priorityValue);
+            message = `Retrieved page ${pageValue} of priority ${priorityValue} messages (${limitValue} per page)`;
+        } else {
+            // Offset-based pagination (offset defaults to 0 if not provided)
+            const offsetValue = offset ? parseInt(offset as string) : 0;
+            result = await getMessagesWithOffsetPagination(offsetValue, limitValue, priorityValue);
+            message = `Retrieved ${result.entries.length} priority ${priorityValue} message(s) starting at offset ${offsetValue}`;
+        }
+
+        // Check if any results found
+        if (result.entries.length === 0 && (page === undefined || parseInt(page as string) === 1) && (offset === undefined || parseInt(offset as string) === 0)) {
+            sendError(response, 404, `No messages found with priority ${priorityValue}`, ErrorCodes.MSG_NO_PRIORITY_FOUND);
+            return;
+        }
+
+        sendSuccess(response, { ...result, priority: priorityValue }, message);
+
+    } catch (error) {
+        console.error('Error getting paginated messages by priority:', error);
+        sendError(response, 500, "Server error occurred while retrieving paginated messages - please contact support", ErrorCodes.SRVR_INTERNAL_ERROR);
     }
 };

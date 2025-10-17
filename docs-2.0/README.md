@@ -142,6 +142,7 @@ This project demonstrates key concepts through practical implementation:
 - [Web Security Guide](http://localhost:4000/doc/web-security-guide.md) - XSS, SQL injection, input validation
 - [Validation Strategies](http://localhost:4000/doc/validation-strategies.md) - Comprehensive validation guide
 - [Database Fundamentals](http://localhost:4000/doc/database-fundamentals.md) - Transactions, pooling, optimization
+- [Pagination Patterns](http://localhost:4000/doc/pagination-patterns.md) - Page-based, offset-based, and cursor-based pagination
 
 ---
 

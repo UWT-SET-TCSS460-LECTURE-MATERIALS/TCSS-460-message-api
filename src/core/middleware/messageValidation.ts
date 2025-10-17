@@ -120,3 +120,107 @@ export const validateNameParam = [
 
     handleMessageValidationErrors
 ];
+
+/**
+ * Custom middleware to validate pagination parameters
+ * Ensures only ONE pagination method is used (page OR offset, not both)
+ * Also validates that pagination parameters are within acceptable ranges
+ *
+ * @param request - Express request object containing pagination query parameters
+ * @param response - Express response object for sending validation errors
+ * @param next - Express next function to continue middleware chain
+ *
+ * @example
+ * // Valid: page-based pagination
+ * GET /message/all/paginated?page=2&limit=10
+ *
+ * @example
+ * // Valid: offset-based pagination
+ * GET /message/all/paginated?offset=20&limit=10
+ *
+ * @example
+ * // Invalid: both pagination types
+ * GET /message/all/paginated?page=2&offset=20&limit=10
+ * // Returns 400 error: "Cannot use both page and offset parameters"
+ */
+export const validatePaginationParams = (
+    request: Request,
+    response: Response,
+    next: NextFunction
+): void => {
+    const { page, offset, limit } = request.query;
+
+    // Check if both pagination methods are used
+    if (page !== undefined && offset !== undefined) {
+        sendValidationError(
+            response,
+            'Cannot use both page and offset parameters - choose one pagination method',
+            [{
+                type: 'field',
+                msg: 'Cannot use both page and offset parameters - choose one pagination method',
+                path: 'page,offset',
+                location: 'query'
+            }]
+        );
+        return;
+    }
+
+    // Validate page parameter if present
+    if (page !== undefined) {
+        const pageNum = Number(page);
+        if (isNaN(pageNum) || pageNum < 1) {
+            sendValidationError(
+                response,
+                'Page must be a positive integer (1 or greater)',
+                [{
+                    type: 'field',
+                    msg: 'Page must be a positive integer',
+                    path: 'page',
+                    location: 'query',
+                    value: page
+                }]
+            );
+            return;
+        }
+    }
+
+    // Validate offset parameter if present
+    if (offset !== undefined) {
+        const offsetNum = Number(offset);
+        if (isNaN(offsetNum) || offsetNum < 0) {
+            sendValidationError(
+                response,
+                'Offset must be a non-negative integer (0 or greater)',
+                [{
+                    type: 'field',
+                    msg: 'Offset must be a non-negative integer',
+                    path: 'offset',
+                    location: 'query',
+                    value: offset
+                }]
+            );
+            return;
+        }
+    }
+
+    // Validate limit parameter if present
+    if (limit !== undefined) {
+        const limitNum = Number(limit);
+        if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+            sendValidationError(
+                response,
+                'Limit must be an integer between 1 and 100',
+                [{
+                    type: 'field',
+                    msg: 'Limit must be between 1 and 100',
+                    path: 'limit',
+                    location: 'query',
+                    value: limit
+                }]
+            );
+            return;
+        }
+    }
+
+    next();
+};

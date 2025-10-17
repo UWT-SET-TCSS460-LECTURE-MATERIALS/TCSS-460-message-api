@@ -6,13 +6,16 @@ import {
     deleteMessagesByPriority,
     getAllMessages,
     getMessageByName,
-    deleteMessageByName
+    deleteMessageByName,
+    getAllMessagesPaginated,
+    getMessagesByPriorityPaginated
 } from '@controllers/messageController';
 import {
     validateCreateMessage,
     validateUpdateMessage,
     validatePriorityQuery,
-    validateNameParam
+    validateNameParam,
+    validatePaginationParams
 } from '@middleware/messageValidation';
 
 export const messageRoutes = Router();
@@ -23,8 +26,14 @@ messageRoutes.post('/', validateCreateMessage, createMessage);
 // PATCH /message - Update an existing message
 messageRoutes.patch('/', validateUpdateMessage, updateMessage);
 
+// GET /message/all/paginated - Get all messages with pagination (must come before /all)
+messageRoutes.get('/all/paginated', validatePaginationParams, getAllMessagesPaginated);
+
 // GET /message/all - Get all messages (must come before /:name)
 messageRoutes.get('/all', getAllMessages);
+
+// GET /message/paginated?priority=N - Get messages by priority with pagination (must come before /:name)
+messageRoutes.get('/paginated', validatePriorityQuery, validatePaginationParams, getMessagesByPriorityPaginated);
 
 // GET /message/:name - Get message by name (must come before query param route)
 messageRoutes.get('/:name', validateNameParam, getMessageByName);

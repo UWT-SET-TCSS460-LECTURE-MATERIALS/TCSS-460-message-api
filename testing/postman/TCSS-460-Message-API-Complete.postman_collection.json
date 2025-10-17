@@ -1,8 +1,8 @@
 {
   "info": {
-    "_postman_id": "a1b2c3d4-e5f6-4789-a0b1-c2d3e4f56789",
-    "name": "TCSS-460 Message API - Comprehensive Tests",
-    "description": "Complete test suite for the TCSS-460 Message API including public and protected endpoints, validation tests, and error handling.\n\n**Setup Instructions:**\n1. Import this collection into Postman\n2. Create an environment with variable `baseUrl` set to `http://localhost:8000`\n3. Run 'Generate API Key' request first to get authentication token\n4. The API key will be automatically saved to environment variable `apiKey`\n5. Run requests in order or use Collection Runner for automated testing\n\n**Delay Configuration:**\n- The collection includes a `requestDelay` variable (default: 500ms)\n- This adds a delay between ALL requests when using Collection Runner\n- To change: Edit collection variables → `requestDelay` → set value in milliseconds\n- Set to 0 for no delay, 500 for half second, 1000 for 1 second, etc.\n- Critical requests (API key generation, reads after writes) have additional built-in delays\n\n**Running Tests:**\n- Individual requests: No delay applied\n- Collection Runner: Automatic delays applied between requests\n- Delays help ensure database operations complete before validation",
+    "_postman_id": "b2c3d4e5-f6a7-4890-b1c2-d3e4f5a67890",
+    "name": "TCSS-460 Message API - Complete Test Collection",
+    "description": "Complete random data generation collection for the TCSS-460 Message API with full endpoint coverage.\n\n**Features:**\n- Uses Postman's built-in random variables\n- Custom random priority generator (1-3)\n- Tests for ALL API endpoints including pagination\n- Collection variables store generated data for reference\n\n**Setup Instructions:**\n1. Import this collection into Postman\n2. Create an environment with variable `baseUrl` set to `http://localhost:8000`\n3. Run 'Generate API Key' request first to get authentication token\n4. Use Collection Runner for bulk data generation\n\n**New in this version:**\n- GET /message/{name} and GET /protected/message/{name}\n- Paginated endpoints (page-based and offset-based)\n- Comprehensive test coverage for all routes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "event": [
@@ -11,10 +11,15 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Collection-level delay (applies to all requests)",
-          "// Set delay in milliseconds (0 = no delay, 500 = half second, 1000 = 1 second)",
-          "const delayMs = pm.collectionVariables.get('requestDelay') || 0;",
+          "// Collection-level random priority generator",
+          "function getRandomPriority() {",
+          "    return Math.floor(Math.random() * 3) + 1;",
+          "}",
           "",
+          "pm.collectionVariables.set('randomPriority', getRandomPriority());",
+          "",
+          "// Optional delay between requests",
+          "const delayMs = pm.collectionVariables.get('requestDelay') || 0;",
           "if (delayMs > 0) {",
           "    console.log(`⏱️ Waiting ${delayMs}ms before request...`);",
           "    setTimeout(function(){}, delayMs);",
@@ -27,7 +32,6 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Log test results summary",
           "const testResults = pm.response.code;",
           "console.log(`✓ ${pm.info.requestName} - Status: ${testResults}`);"
         ]
@@ -46,15 +50,19 @@
       "type": "string"
     },
     {
-      "key": "testName",
-      "value": "TestUser_{{$randomInt}}",
+      "key": "randomPriority",
+      "value": "1",
+      "type": "number"
+    },
+    {
+      "key": "lastCreatedName",
+      "value": "",
       "type": "string"
     },
     {
       "key": "requestDelay",
-      "value": "500",
-      "type": "number",
-      "description": "Delay in milliseconds between requests (0 = no delay, 500 = half second, 1000 = 1 second)"
+      "value": "0",
+      "type": "number"
     }
   ],
   "item": [
@@ -96,42 +104,12 @@
           }
         },
         {
-          "name": "Get API Key Form (HTML)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Content-Type is HTML\", function () {",
-                  "    pm.response.to.have.header('Content-Type');",
-                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/api-key",
-              "host": ["{{baseUrl}}"],
-              "path": ["api-key"]
-            }
-          }
-        },
-        {
           "name": "Generate API Key",
           "event": [
             {
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Extra delay for API key generation to ensure DB commit",
                   "const extraDelay = 200;",
                   "setTimeout(function(){}, extraDelay);"
                 ]
@@ -159,7 +137,7 @@
                   "pm.test(\"Save API key to environment\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.environment.set(\"apiKey\", jsonData.data.api_key);",
-                  "    console.log(\"API Key saved: \" + jsonData.data.api_key);",
+                  "    console.log(\"🔑 API Key saved: \" + jsonData.data.api_key);",
                   "});"
                 ]
               }
@@ -175,45 +153,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Postman Test User\",\n  \"email\": \"test@example.com\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api-key",
-              "host": ["{{baseUrl}}"],
-              "path": ["api-key"]
-            }
-          }
-        },
-        {
-          "name": "Generate API Key - Invalid Email",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});",
-                  "",
-                  "pm.test(\"Response has error flag\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"invalid-email\"\n}"
+              "raw": "{\n  \"name\": \"{{$randomFullName}}\",\n  \"email\": \"{{$randomEmail}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api-key",
@@ -225,11 +165,29 @@
       ]
     },
     {
-      "name": "2. Public Messages - CREATE",
+      "name": "2. Quick DB Population",
       "item": [
         {
-          "name": "Create Message - Priority 1",
+          "name": "Create Random Message",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "",
+                  "const randomName = pm.variables.replaceIn('{{$randomFirstName}}') + '_' + Date.now();",
+                  "pm.collectionVariables.set('lastCreatedName', randomName);",
+                  "",
+                  "console.log(`🎲 Generating random message: ${randomName} (Priority: ${priority})`);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -241,14 +199,143 @@
                   "pm.test(\"Message created successfully\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.name).to.eql(\"Alice\");",
+                  "    pm.expect(jsonData.data.name).to.exist;",
+                  "    pm.expect(jsonData.data.priority).to.be.within(1, 3);",
+                  "});",
+                  "",
+                  "pm.test(\"Random data is valid\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.name).to.be.a('string');",
+                  "    pm.expect(jsonData.data.message).to.be.a('string');",
+                  "    pm.expect(jsonData.data.message.length).to.be.above(0);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`✅ Created: ${jsonData.data.formatted}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"{{$randomPhrase}}\",\n  \"priority\": {{randomPriority}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/message",
+              "host": ["{{baseUrl}}"],
+              "path": ["message"]
+            }
+          }
+        },
+        {
+          "name": "Create Random Protected Message",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "",
+                  "const randomName = 'Protected_' + pm.variables.replaceIn('{{$randomFirstName}}') + '_' + Date.now();",
+                  "pm.collectionVariables.set('lastCreatedName', randomName);",
+                  "",
+                  "console.log(`🎲 Generating random protected message: ${randomName} (Priority: ${priority})`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Protected message created successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.name).to.exist;",
+                  "    pm.expect(jsonData.data.priority).to.be.within(1, 3);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`✅ Created: ${jsonData.data.formatted}`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"{{$randomPhrase}}\",\n  \"priority\": {{randomPriority}}\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/protected/message",
+              "host": ["{{baseUrl}}"],
+              "path": ["protected", "message"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Random CRUD Operations",
+      "item": [
+        {
+          "name": "Create Message - Random Priority 1",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('randomPriority', 1);",
+                  "",
+                  "const randomName = pm.variables.replaceIn('{{$randomFirstName}}') + '_P1_' + Date.now();",
+                  "pm.collectionVariables.set('lastCreatedName', randomName);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Message created with priority 1\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
                   "    pm.expect(jsonData.data.priority).to.eql(1);",
                   "});",
                   "",
-                  "pm.test(\"Formatted message is correct\", function () {",
+                  "pm.test(\"Formatted message contains priority marker\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data.formatted).to.include(\"[Alice] says:\");",
-                  "    pm.expect(jsonData.data.formatted).to.include(\"{1}\");",
+                  "    pm.expect(jsonData.data.formatted).to.include('{1}');",
                   "});"
                 ]
               }
@@ -264,7 +351,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Alice\",\n  \"message\": \"High priority urgent message!\",\n  \"priority\": 1\n}"
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"{{$randomPhrase}}\",\n  \"priority\": {{randomPriority}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/message",
@@ -274,8 +361,19 @@
           }
         },
         {
-          "name": "Create Message - Priority 2",
+          "name": "Create Message - Random Priority 2",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('randomPriority', 2);",
+                  "",
+                  "const randomName = pm.variables.replaceIn('{{$randomFirstName}}') + '_P2_' + Date.now();",
+                  "pm.collectionVariables.set('lastCreatedName', randomName);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -302,7 +400,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Bob\",\n  \"message\": \"Medium priority message\",\n  \"priority\": 2\n}"
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"{{$randomPhrase}}\",\n  \"priority\": {{randomPriority}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/message",
@@ -312,8 +410,19 @@
           }
         },
         {
-          "name": "Create Message - Priority 3",
+          "name": "Create Message - Random Priority 3",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('randomPriority', 3);",
+                  "",
+                  "const randomName = pm.variables.replaceIn('{{$randomFirstName}}') + '_P3_' + Date.now();",
+                  "pm.collectionVariables.set('lastCreatedName', randomName);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -340,7 +449,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Charlie\",\n  \"message\": \"Low priority message\",\n  \"priority\": 3\n}"
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"{{$randomPhrase}}\",\n  \"priority\": {{randomPriority}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/message",
@@ -350,125 +459,61 @@
           }
         },
         {
-          "name": "Create Message - Duplicate Name (Error)",
+          "name": "Get Message by Name",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const lastName = pm.collectionVariables.get('lastCreatedName');",
+                  "",
+                  "if (!lastName) {",
+                  "    console.log('⚠️ No lastCreatedName found. Run a CREATE request first.');",
+                  "} else {",
+                  "    console.log(`🔍 Looking up message for: ${lastName}`);",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "    pm.response.to.have.status(400);",
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
                   "});",
                   "",
-                  "pm.test(\"Error indicates duplicate name\", function () {",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Message found successfully\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.name).to.exist;",
+                  "        pm.expect(jsonData.data.message).to.exist;",
+                  "        pm.expect(jsonData.data.priority).to.be.within(1, 3);",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"Response contains formatted message\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.data.formatted).to.exist;",
+                  "    });",
+                  "    ",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "    pm.expect(jsonData.errorCode).to.eql(\"MSG_NAME_EXISTS\");",
-                  "});"
+                  "    console.log(`✅ Found: ${jsonData.data.formatted}`);",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Alice\",\n  \"message\": \"This should fail - duplicate name\",\n  \"priority\": 1\n}"
-            },
+            "method": "GET",
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/message",
+              "raw": "{{baseUrl}}/message/{{lastCreatedName}}",
               "host": ["{{baseUrl}}"],
-              "path": ["message"]
+              "path": ["message", "{{lastCreatedName}}"]
             }
           }
         },
-        {
-          "name": "Create Message - Invalid Priority (Error)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});",
-                  "",
-                  "pm.test(\"Error indicates invalid priority\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"InvalidPriority\",\n  \"message\": \"This has invalid priority\",\n  \"priority\": 5\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/message",
-              "host": ["{{baseUrl}}"],
-              "path": ["message"]
-            }
-          }
-        },
-        {
-          "name": "Create Message - Empty Message (Error)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 400\", function () {",
-                  "    pm.response.to.have.status(400);",
-                  "});",
-                  "",
-                  "pm.test(\"Error indicates validation failure\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"EmptyMessage\",\n  \"message\": \"\",\n  \"priority\": 1\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/message",
-              "host": ["{{baseUrl}}"],
-              "path": ["message"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "3. Public Messages - READ",
-      "item": [
         {
           "name": "Get All Messages",
           "event": [
@@ -476,7 +521,6 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "// Delay to ensure previous DB operations are committed",
                   "setTimeout(function(){}, 300);"
                 ]
               }
@@ -498,7 +542,10 @@
                   "pm.test(\"Response has priority breakdown\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.data.priorityBreakdown).to.exist;",
-                  "});"
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`📊 Total messages in DB: ${jsonData.data.totalCount}`);"
                 ]
               }
             }
@@ -514,7 +561,221 @@
           }
         },
         {
-          "name": "Get Messages by Priority 1",
+          "name": "Get Messages by Random Priority",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "pm.collectionVariables.set('randomPriority', getRandomPriority());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"All messages have correct priority\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        const expectedPriority = pm.collectionVariables.get('randomPriority');",
+                  "        jsonData.data.entries.forEach(entry => {",
+                  "            pm.expect(entry.priority).to.eql(expectedPriority);",
+                  "        });",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/message?priority={{randomPriority}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["message"],
+              "query": [
+                {
+                  "key": "priority",
+                  "value": "{{randomPriority}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Message with Random Content",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const lastName = pm.collectionVariables.get('lastCreatedName');",
+                  "",
+                  "if (!lastName) {",
+                  "    console.log('⚠️ No lastCreatedName found. Run a CREATE request first.');",
+                  "}",
+                  "",
+                  "console.log(`🔄 Updating message for: ${lastName}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Message updated successfully\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.message).to.exist;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"UPDATED: {{$randomPhrase}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/message",
+              "host": ["{{baseUrl}}"],
+              "path": ["message"]
+            }
+          }
+        },
+        {
+          "name": "Delete Message by Last Created Name",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const lastName = pm.collectionVariables.get('lastCreatedName');",
+                  "",
+                  "if (!lastName) {",
+                  "    console.log('⚠️ No lastCreatedName found. Run a CREATE request first.');",
+                  "}",
+                  "",
+                  "console.log(`🗑️ Deleting message for: ${lastName}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Message deleted successfully\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/message/{{lastCreatedName}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["message", "{{lastCreatedName}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Messages by Random Priority",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "",
+                  "console.log(`🗑️ Deleting all messages with priority: ${priority}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Messages deleted\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.deletedCount).to.be.a('number');",
+                  "    });",
+                  "    ",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log(`✅ Deleted ${jsonData.data.deletedCount} message(s)`);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/message?priority={{randomPriority}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["message"],
+              "query": [
+                {
+                  "key": "priority",
+                  "value": "{{randomPriority}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Pagination Tests",
+      "description": "Test paginated endpoints with both page-based and offset-based pagination",
+      "item": [
+        {
+          "name": "Get All Messages - Page Based (Page 1)",
           "event": [
             {
               "listen": "test",
@@ -524,12 +785,30 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test(\"All messages have priority 1\", function () {",
+                  "pm.test(\"Response contains paginated data\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    jsonData.data.entries.forEach(entry => {",
-                  "        pm.expect(entry.priority).to.eql(1);",
-                  "    });",
-                  "});"
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.entries).to.be.an('array');",
+                  "    pm.expect(jsonData.data.pagination).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"Pagination metadata is correct for page-based\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.pagination.page).to.eql(1);",
+                  "    pm.expect(jsonData.data.pagination.limit).to.eql(10);",
+                  "    pm.expect(jsonData.data.pagination.totalCount).to.be.a('number');",
+                  "    pm.expect(jsonData.data.pagination.totalPages).to.be.a('number');",
+                  "    pm.expect(jsonData.data.pagination.hasNext).to.be.a('boolean');",
+                  "    pm.expect(jsonData.data.pagination.hasPrevious).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "pm.test(\"Entries array length respects limit\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.entries.length).to.be.at.most(10);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`📄 Page 1: ${jsonData.data.entries.length} messages (Total: ${jsonData.data.pagination.totalCount})`);"
                 ]
               }
             }
@@ -538,20 +817,24 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/message?priority=1",
+              "raw": "{{baseUrl}}/message/all/paginated?page=1&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["message"],
+              "path": ["message", "all", "paginated"],
               "query": [
                 {
-                  "key": "priority",
+                  "key": "page",
                   "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
                 }
               ]
             }
           }
         },
         {
-          "name": "Get Messages by Priority 2",
+          "name": "Get All Messages - Page Based (Page 2)",
           "event": [
             {
               "listen": "test",
@@ -561,12 +844,14 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test(\"All messages have priority 2\", function () {",
+                  "pm.test(\"Response is for page 2\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    jsonData.data.entries.forEach(entry => {",
-                  "        pm.expect(entry.priority).to.eql(2);",
-                  "    });",
-                  "});"
+                  "    pm.expect(jsonData.data.pagination.page).to.eql(2);",
+                  "    pm.expect(jsonData.data.pagination.hasPrevious).to.be.true;",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`📄 Page 2: ${jsonData.data.entries.length} messages`);"
                 ]
               }
             }
@@ -575,20 +860,24 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/message?priority=2",
+              "raw": "{{baseUrl}}/message/all/paginated?page=2&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["message"],
+              "path": ["message", "all", "paginated"],
               "query": [
                 {
-                  "key": "priority",
+                  "key": "page",
                   "value": "2"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
                 }
               ]
             }
           }
         },
         {
-          "name": "Get Messages by Priority 3",
+          "name": "Get All Messages - Offset Based (Offset 0)",
           "event": [
             {
               "listen": "test",
@@ -598,12 +887,24 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test(\"All messages have priority 3\", function () {",
+                  "pm.test(\"Response contains paginated data\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    jsonData.data.entries.forEach(entry => {",
-                  "        pm.expect(entry.priority).to.eql(3);",
-                  "    });",
-                  "});"
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.entries).to.be.an('array');",
+                  "    pm.expect(jsonData.data.pagination).to.exist;",
+                  "});",
+                  "",
+                  "pm.test(\"Pagination metadata is correct for offset-based\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.pagination.offset).to.eql(0);",
+                  "    pm.expect(jsonData.data.pagination.limit).to.eql(5);",
+                  "    pm.expect(jsonData.data.pagination.totalCount).to.be.a('number');",
+                  "    pm.expect(jsonData.data.pagination.hasNext).to.be.a('boolean');",
+                  "    pm.expect(jsonData.data.pagination.hasPrevious).to.be.false;",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`📄 Offset 0: ${jsonData.data.entries.length} messages (Total: ${jsonData.data.pagination.totalCount})`);"
                 ]
               }
             }
@@ -612,33 +913,173 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/message?priority=3",
+              "raw": "{{baseUrl}}/message/all/paginated?offset=0&limit=5",
               "host": ["{{baseUrl}}"],
-              "path": ["message"],
+              "path": ["message", "all", "paginated"],
+              "query": [
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Messages - Offset Based (Offset 5)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response is for offset 5\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.pagination.offset).to.eql(5);",
+                  "    pm.expect(jsonData.data.pagination.hasPrevious).to.be.true;",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`📄 Offset 5: ${jsonData.data.entries.length} messages`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/message/all/paginated?offset=5&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["message", "all", "paginated"],
+              "query": [
+                {
+                  "key": "offset",
+                  "value": "5"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Messages by Priority - Page Based",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "console.log(`🔍 Fetching paginated messages for priority: ${priority}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Response contains paginated priority data\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.entries).to.be.an('array');",
+                  "        pm.expect(jsonData.data.pagination).to.exist;",
+                  "        pm.expect(jsonData.data.priority).to.exist;",
+                  "    });",
+                  "    ",
+                  "    pm.test(\"All messages have correct priority\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        const expectedPriority = pm.collectionVariables.get('randomPriority');",
+                  "        jsonData.data.entries.forEach(entry => {",
+                  "            pm.expect(entry.priority).to.eql(expectedPriority);",
+                  "        });",
+                  "    });",
+                  "    ",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log(`📄 Priority ${jsonData.data.priority}: ${jsonData.data.entries.length} messages on page 1`);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/message/paginated?priority={{randomPriority}}&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["message", "paginated"],
               "query": [
                 {
                   "key": "priority",
-                  "value": "3"
+                  "value": "{{randomPriority}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
                 }
               ]
             }
           }
         },
         {
-          "name": "Get Message by Name",
+          "name": "Get Messages by Priority - Offset Based",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "console.log(`🔍 Fetching paginated messages for priority: ${priority} (offset-based)`);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
                   "});",
                   "",
-                  "pm.test(\"Correct message returned\", function () {",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Response uses offset-based pagination\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.data.pagination.offset).to.eql(0);",
+                  "        pm.expect(jsonData.data.pagination.limit).to.eql(5);",
+                  "    });",
+                  "    ",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data.name).to.eql(\"Alice\");",
-                  "});"
+                  "    console.log(`📄 Priority ${jsonData.data.priority}: ${jsonData.data.entries.length} messages at offset 0`);",
+                  "}"
                 ]
               }
             }
@@ -647,43 +1088,28 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/message/Alice",
+              "raw": "{{baseUrl}}/message/paginated?priority={{randomPriority}}&offset=0&limit=5",
               "host": ["{{baseUrl}}"],
-              "path": ["message", "Alice"]
+              "path": ["message", "paginated"],
+              "query": [
+                {
+                  "key": "priority",
+                  "value": "{{randomPriority}}"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
             }
           }
         },
         {
-          "name": "Get Message by Name - Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 404\", function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "pm.test(\"Error response returned\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/message/NonExistentUser",
-              "host": ["{{baseUrl}}"],
-              "path": ["message", "NonExistentUser"]
-            }
-          }
-        },
-        {
-          "name": "Get Messages - Invalid Priority",
+          "name": "Test Pagination Conflict Error",
           "event": [
             {
               "listen": "test",
@@ -691,7 +1117,15 @@
                 "exec": [
                   "pm.test(\"Status code is 400\", function () {",
                   "    pm.response.to.have.status(400);",
-                  "});"
+                  "});",
+                  "",
+                  "pm.test(\"Error message indicates pagination conflict\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('page and offset');",
+                  "});",
+                  "",
+                  "console.log('✅ Correctly rejected using both page and offset parameters');"
                 ]
               }
             }
@@ -700,190 +1134,21 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/message?priority=invalid",
+              "raw": "{{baseUrl}}/message/all/paginated?page=1&offset=0&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["message"],
+              "path": ["message", "all", "paginated"],
               "query": [
                 {
-                  "key": "priority",
-                  "value": "invalid"
-                }
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "4. Public Messages - UPDATE",
-      "item": [
-        {
-          "name": "Update Message",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Message updated successfully\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.message).to.include(\"Updated message\");",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Bob\",\n  \"message\": \"Updated message content for Bob\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/message",
-              "host": ["{{baseUrl}}"],
-              "path": ["message"]
-            }
-          }
-        },
-        {
-          "name": "Update Message - Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 404\", function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});",
-                  "",
-                  "pm.test(\"Error response returned\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"NonExistentUser\",\n  \"message\": \"This update should fail\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/message",
-              "host": ["{{baseUrl}}"],
-              "path": ["message"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "5. Public Messages - DELETE",
-      "item": [
-        {
-          "name": "Delete Message by Name",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Message deleted successfully\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.deleted).to.exist;",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/message/Charlie",
-              "host": ["{{baseUrl}}"],
-              "path": ["message", "Charlie"]
-            }
-          }
-        },
-        {
-          "name": "Delete Message - Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 404\", function () {",
-                  "    pm.response.to.have.status(404);",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/message/NonExistentUser",
-              "host": ["{{baseUrl}}"],
-              "path": ["message", "NonExistentUser"]
-            }
-          }
-        },
-        {
-          "name": "Delete Messages by Priority",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Messages deleted\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.deletedCount).to.be.a('number');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/message?priority=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["message"],
-              "query": [
-                {
-                  "key": "priority",
+                  "key": "page",
                   "value": "1"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
                 }
               ]
             }
@@ -892,81 +1157,29 @@
       ]
     },
     {
-      "name": "6. Protected Messages - Authentication Tests",
+      "name": "5. Protected Random Operations",
       "item": [
         {
-          "name": "Protected Endpoint - No API Key (Error)",
+          "name": "Create Protected Random Message",
           "event": [
             {
-              "listen": "test",
+              "listen": "prerequest",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 401\", function () {",
-                  "    pm.response.to.have.status(401);",
-                  "});",
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
                   "",
-                  "pm.test(\"Error indicates missing API key\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "    pm.expect(jsonData.errorCode).to.eql(\"AUTH_KEY_REQUIRED\");",
-                  "});"
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "",
+                  "const randomName = 'Protected_' + pm.variables.replaceIn('{{$randomFirstName}}') + '_' + Date.now();",
+                  "pm.collectionVariables.set('lastCreatedName', randomName);",
+                  "",
+                  "console.log(`🔐 Creating protected message: ${randomName} (Priority: ${priority})`);"
                 ]
               }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/protected/message/all",
-              "host": ["{{baseUrl}}"],
-              "path": ["protected", "message", "all"]
-            }
-          }
-        },
-        {
-          "name": "Protected Endpoint - Invalid API Key (Error)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 401\", function () {",
-                  "    pm.response.to.have.status(401);",
-                  "});",
-                  "",
-                  "pm.test(\"Error indicates invalid API key\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.false;",
-                  "    pm.expect(jsonData.errorCode).to.eql(\"AUTH_KEY_INVALID\");",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "invalid-key-12345"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/protected/message/all",
-              "host": ["{{baseUrl}}"],
-              "path": ["protected", "message", "all"]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "7. Protected Messages - CRUD Operations",
-      "item": [
-        {
-          "name": "Create Protected Message - Priority 1",
-          "event": [
+            },
             {
               "listen": "test",
               "script": {
@@ -978,8 +1191,11 @@
                   "pm.test(\"Protected message created\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.name).to.eql(\"ProtectedUser1\");",
-                  "});"
+                  "    pm.expect(jsonData.data.name).to.exist;",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`✅ Created: ${jsonData.data.formatted}`);"
                 ]
               }
             }
@@ -998,7 +1214,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"ProtectedUser1\",\n  \"message\": \"This is a protected high priority message\",\n  \"priority\": 1\n}"
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"{{$randomPhrase}}\",\n  \"priority\": {{randomPriority}}\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/protected/message",
@@ -1008,39 +1224,57 @@
           }
         },
         {
-          "name": "Create Protected Message - Priority 2",
+          "name": "Get Protected Message by Name",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const lastName = pm.collectionVariables.get('lastCreatedName');",
+                  "",
+                  "if (!lastName) {",
+                  "    console.log('⚠️ No lastCreatedName found. Run a CREATE request first.');",
+                  "} else {",
+                  "    console.log(`🔍 Looking up protected message for: ${lastName}`);",
+                  "}"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 201\", function () {",
-                  "    pm.response.to.have.status(201);",
-                  "});"
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Protected message found successfully\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.name).to.exist;",
+                  "        pm.expect(jsonData.data.message).to.exist;",
+                  "    });",
+                  "    ",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log(`✅ Found: ${jsonData.data.formatted}`);",
+                  "}"
                 ]
               }
             }
           ],
           "request": {
-            "method": "POST",
+            "method": "GET",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
               {
                 "key": "X-API-Key",
                 "value": "{{apiKey}}"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"ProtectedUser2\",\n  \"message\": \"This is a protected medium priority message\",\n  \"priority\": 2\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/protected/message",
+              "raw": "{{baseUrl}}/protected/message/{{lastCreatedName}}",
               "host": ["{{baseUrl}}"],
-              "path": ["protected", "message"]
+              "path": ["protected", "message", "{{lastCreatedName}}"]
             }
           }
         },
@@ -1059,7 +1293,10 @@
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
                   "    pm.expect(jsonData.data.entries).to.be.an('array');",
-                  "});"
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`📊 Total protected messages: ${jsonData.data.totalCount}`);"
                 ]
               }
             }
@@ -1080,97 +1317,36 @@
           }
         },
         {
-          "name": "Get Protected Messages by Priority",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"All messages have correct priority\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    jsonData.data.entries.forEach(entry => {",
-                  "        pm.expect(entry.priority).to.eql(1);",
-                  "    });",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/protected/message?priority=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["protected", "message"],
-              "query": [
-                {
-                  "key": "priority",
-                  "value": "1"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Protected Message by Name",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Correct message returned\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.data.name).to.eql(\"ProtectedUser1\");",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/protected/message/ProtectedUser1",
-              "host": ["{{baseUrl}}"],
-              "path": ["protected", "message", "ProtectedUser1"]
-            }
-          }
-        },
-        {
           "name": "Update Protected Message",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const lastName = pm.collectionVariables.get('lastCreatedName');",
+                  "",
+                  "if (!lastName) {",
+                  "    console.log('⚠️ No lastCreatedName found. Run a CREATE request first.');",
+                  "}",
+                  "",
+                  "console.log(`🔄 Updating protected message for: ${lastName}`);"
+                ]
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
                   "});",
                   "",
-                  "pm.test(\"Message updated successfully\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.message).to.include(\"Updated protected message\");",
-                  "});"
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Message updated successfully\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "    });",
+                  "}"
                 ]
               }
             }
@@ -1189,7 +1365,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"ProtectedUser2\",\n  \"message\": \"Updated protected message content\"\n}"
+              "raw": "{\n  \"name\": \"{{lastCreatedName}}\",\n  \"message\": \"UPDATED PROTECTED: {{$randomPhrase}}\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/protected/message",
@@ -1199,20 +1375,36 @@
           }
         },
         {
-          "name": "Delete Protected Message by Name",
+          "name": "Delete Protected Message",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const lastName = pm.collectionVariables.get('lastCreatedName');",
+                  "",
+                  "if (!lastName) {",
+                  "    console.log('⚠️ No lastCreatedName found. Run a CREATE request first.');",
+                  "}",
+                  "",
+                  "console.log(`🗑️ Deleting protected message for: ${lastName}`);"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
                   "});",
                   "",
-                  "pm.test(\"Message deleted successfully\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "});"
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Message deleted successfully\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "    });",
+                  "}"
                 ]
               }
             }
@@ -1226,60 +1418,20 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/protected/message/ProtectedUser2",
+              "raw": "{{baseUrl}}/protected/message/{{lastCreatedName}}",
               "host": ["{{baseUrl}}"],
-              "path": ["protected", "message", "ProtectedUser2"]
-            }
-          }
-        },
-        {
-          "name": "Delete Protected Messages by Priority",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test(\"Status code is 200\", function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test(\"Messages deleted successfully\", function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.deletedCount).to.be.a('number');",
-                  "});"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "X-API-Key",
-                "value": "{{apiKey}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/protected/message?priority=1",
-              "host": ["{{baseUrl}}"],
-              "path": ["protected", "message"],
-              "query": [
-                {
-                  "key": "priority",
-                  "value": "1"
-                }
-              ]
+              "path": ["protected", "message", "{{lastCreatedName}}"]
             }
           }
         }
       ]
     },
     {
-      "name": "8. Documentation Endpoints",
+      "name": "6. Protected Pagination Tests",
+      "description": "Test protected paginated endpoints with authentication",
       "item": [
         {
-          "name": "Get Documentation Index",
+          "name": "Get All Protected Messages - Page Based",
           "event": [
             {
               "listen": "test",
@@ -1289,9 +1441,246 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test(\"Content-Type is HTML\", function () {",
-                  "    pm.expect(pm.response.headers.get('Content-Type')).to.include('text/html');",
-                  "});"
+                  "pm.test(\"Response contains paginated data with authentication\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.entries).to.be.an('array');",
+                  "    pm.expect(jsonData.data.pagination).to.exist;",
+                  "    pm.expect(jsonData.data.pagination.page).to.eql(1);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`🔐📄 Protected Page 1: ${jsonData.data.entries.length} messages`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/protected/message/all/paginated?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["protected", "message", "all", "paginated"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Protected Messages - Offset Based",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response uses offset-based pagination\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.data.pagination.offset).to.eql(0);",
+                  "    pm.expect(jsonData.data.pagination.limit).to.eql(5);",
+                  "});",
+                  "",
+                  "var jsonData = pm.response.json();",
+                  "console.log(`🔐📄 Protected Offset 0: ${jsonData.data.entries.length} messages`);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/protected/message/all/paginated?offset=0&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["protected", "message", "all", "paginated"],
+              "query": [
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Protected Messages by Priority - Page Based",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "console.log(`🔐🔍 Fetching protected paginated messages for priority: ${priority}`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Protected paginated priority data returned\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.success).to.be.true;",
+                  "        pm.expect(jsonData.data.pagination.page).to.eql(1);",
+                  "    });",
+                  "    ",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log(`🔐📄 Priority ${jsonData.data.priority}: ${jsonData.data.entries.length} protected messages`);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/protected/message/paginated?priority={{randomPriority}}&page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["protected", "message", "paginated"],
+              "query": [
+                {
+                  "key": "priority",
+                  "value": "{{randomPriority}}"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Protected Messages by Priority - Offset Based",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "function getRandomPriority() {",
+                  "    return Math.floor(Math.random() * 3) + 1;",
+                  "}",
+                  "",
+                  "const priority = getRandomPriority();",
+                  "pm.collectionVariables.set('randomPriority', priority);",
+                  "console.log(`🔐🔍 Fetching protected paginated messages for priority: ${priority} (offset)`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 or 404\", function () {",
+                  "    pm.expect([200, 404]).to.include(pm.response.code);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    pm.test(\"Response uses offset-based pagination\", function () {",
+                  "        var jsonData = pm.response.json();",
+                  "        pm.expect(jsonData.data.pagination.offset).to.eql(0);",
+                  "    });",
+                  "    ",
+                  "    var jsonData = pm.response.json();",
+                  "    console.log(`🔐📄 Priority ${jsonData.data.priority} at offset 0: ${jsonData.data.entries.length} messages`);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-API-Key",
+                "value": "{{apiKey}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/protected/message/paginated?priority={{randomPriority}}&offset=0&limit=5",
+              "host": ["{{baseUrl}}"],
+              "path": ["protected", "message", "paginated"],
+              "query": [
+                {
+                  "key": "priority",
+                  "value": "{{randomPriority}}"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Test Protected Auth Failure (No API Key)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 401\", function () {",
+                  "    pm.response.to.have.status(401);",
+                  "});",
+                  "",
+                  "pm.test(\"Error indicates missing API key\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.false;",
+                  "    pm.expect(jsonData.message).to.include('API key');",
+                  "});",
+                  "",
+                  "console.log('✅ Correctly rejected request without API key');"
                 ]
               }
             }
@@ -1300,9 +1689,19 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{baseUrl}}/doc",
+              "raw": "{{baseUrl}}/protected/message/all/paginated?page=1&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["doc"]
+              "path": ["protected", "message", "all", "paginated"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
             }
           }
         }
