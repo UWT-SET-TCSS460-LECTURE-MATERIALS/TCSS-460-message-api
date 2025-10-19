@@ -8,7 +8,7 @@
   "scripts": {
     "local": "nodemon --exec ts-node -r tsconfig-paths/register -r dotenv/config src/index.ts",
     "dev": "nodemon src/index.ts",
-    "build": "tsc && tsc-alias",
+    "build": "tsc && tsc-alias && cp -r src/views dist/views",
     "start": "node dist/index.js",
     "start:full": "npm run docker:up && npm run local",
     "test": "jest",
