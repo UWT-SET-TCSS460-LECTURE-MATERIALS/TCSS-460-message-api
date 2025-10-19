@@ -108,6 +108,7 @@ export const isProduction = (): boolean => {
  * Validate that all required environment variables are present and accessible
  * Performs startup validation to ensure application has all necessary configuration
  * Should be called early in application lifecycle before attempting to use variables
+ * Supports both individual database config vars (development) and DATABASE_URL (production/Heroku)
  *
  * @returns void (throws error if validation fails)
  * @throws Error with list of missing variables if any are not set
@@ -129,6 +130,19 @@ export const isProduction = (): boolean => {
  * }
  */
 export const validateEnv = (): void => {
+    const nodeEnv = getEnvVar('NODE_ENV', 'development');
+
+    // Production requires DATABASE_URL (Heroku style)
+    if (nodeEnv === 'production') {
+        try {
+            getEnvVar('DATABASE_URL');
+        } catch {
+            throw new Error('Missing required environment variable: DATABASE_URL (required in production)');
+        }
+        return;
+    }
+
+    // Development requires individual database config variables
     const requiredVars = [
         'DB_HOST',
         'DB_PORT',
