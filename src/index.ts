@@ -55,9 +55,7 @@ async function startServer() {
         // Start HTTP server
         const server = app.listen(PORT, () => {
             // Determine base URL based on environment
-            const baseUrl = isProduction()
-                ? `https://${process.env.HEROKU_APP_NAME || 'your-app'}.herokuapp.com`
-                : `http://localhost:${PORT}`;
+            const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
 
             console.log(`🚀 Server running on port ${PORT}`);
             console.log(`📖 API Documentation (Swagger): ${baseUrl}/api-docs`);
