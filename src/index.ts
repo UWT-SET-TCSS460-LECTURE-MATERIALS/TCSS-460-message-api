@@ -12,7 +12,7 @@
 
 import { app } from './app';
 import { connectToDatabase, disconnectFromDatabase } from '@db';
-import { validateEnv } from '@utilities/envConfig';
+import { validateEnv, isProduction } from '@utilities/envConfig';
 
 const PORT = process.env.PORT || 4000;
 
@@ -54,11 +54,16 @@ async function startServer() {
 
         // Start HTTP server
         const server = app.listen(PORT, () => {
+            // Determine base URL based on environment
+            const baseUrl = isProduction()
+                ? `https://${process.env.HEROKU_APP_NAME || 'your-app'}.herokuapp.com`
+                : `http://localhost:${PORT}`;
+
             console.log(`🚀 Server running on port ${PORT}`);
-            console.log(`📖 API Documentation (Swagger): http://localhost:${PORT}/api-docs`);
-            console.log(`📚 Educational Documentation: http://localhost:${PORT}/doc`);
-            console.log(`🔑 Generate API Key: http://localhost:${PORT}/api-key`);
-            console.log(`🔍 Health check: http://localhost:${PORT}/health`);
+            console.log(`📖 API Documentation (Swagger): ${baseUrl}/api-docs`);
+            console.log(`📚 Educational Documentation: ${baseUrl}/doc`);
+            console.log(`🔑 Generate API Key: ${baseUrl}/api-key`);
+            console.log(`🔍 Health check: ${baseUrl}/health`);
         });
 
         // Graceful shutdown handling
