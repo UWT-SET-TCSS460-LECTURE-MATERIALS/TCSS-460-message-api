@@ -9,6 +9,8 @@
  * @see {@link ../../docs/typescript-patterns.md#interface-design} for type design patterns
  */
 
+import { Request} from "express";
+
 /**
  * Request payload for generating a new API key
  * Used by POST /api-key endpoint validation and processing
@@ -149,7 +151,7 @@ export interface ApiKeyResponse {
  *   console.log(`Request from: ${request.apiKey.name}`);
  * };
  */
-export interface AuthenticatedRequest {
+export interface AuthenticatedRequest extends Request{
     /** API key information attached by authentication middleware (undefined if not authenticated) */
     apiKey?: ApiKeyInfo;
 }

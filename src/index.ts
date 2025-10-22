@@ -53,7 +53,26 @@ async function startServer() {
         console.log('✅ Database connection established successfully');
 
         // Start HTTP server
-        const server = app.listen(PORT, () => {
+        const server = app.listen(PORT);
+
+        // Handle server errors (e.g., port already in use)
+        server.on('error', (error: NodeJS.ErrnoException) => {
+            if (error.code === 'EADDRINUSE') {
+                console.error(`❌ Error: Port ${PORT} is already in use`);
+                console.error(`   Please either:`);
+                console.error(`   1. Stop the process using port ${PORT}`);
+                console.error(`   2. Change the PORT in your .env file`);
+                console.error(`\n   Find the process:`);
+                console.error(`   Mac/Linux: lsof -i :${PORT}`);
+                console.error(`   Windows: netstat -ano | findstr :${PORT}`);
+            } else {
+                console.error('❌ Server error:', error);
+            }
+            process.exit(1);
+        });
+
+        // Only show success message after server is actually listening
+        server.on('listening', () => {
             // Determine base URL based on environment
             const baseUrl = process.env.APP_URL || `http://localhost:${PORT}`;
 

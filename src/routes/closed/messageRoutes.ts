@@ -12,7 +12,7 @@
  * - Demonstrates middleware composition (validation + authentication)
  */
 
-import { Router } from 'express';
+import {NextFunction, Request, Response, Router} from 'express';
 import {
     createMessage,
     getMessagesByPriority,
@@ -32,6 +32,7 @@ import {
     validatePaginationParams
 } from '@middleware/messageValidation';
 import { apiKeyAuth } from '@middleware/apiKeyAuth';
+import {AuthenticatedRequest} from "@/types";
 
 export const protectedMessageRoutes = Router();
 
